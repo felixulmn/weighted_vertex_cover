@@ -14,11 +14,15 @@ import java.util.LinkedList;
 import java.util.Stack;
 import java.util.StringTokenizer;
 
-import robustTwoClub.algorithms.RobustTwoClubAlgorithm.Model;
 
 public class RtcGraph {
 
     public static long	flowConstructGraph, flowComputePath;
+
+    // TODO only added class to avoid IDE complaints
+    public static class GraphException extends Exception {
+
+    }
 
     private HashMap<Integer, String> idMap;					// remembers vertex names for outputting solution graphs
     private HashSet<Integer> nodes;							// set of vertices of the graph
@@ -330,36 +334,6 @@ public class RtcGraph {
         return g;
     }
 
-    public RtcGraph turnIntoSingleKernel () {
-        RtcGraph g = new RtcGraph();
-        // We map the original integer IDs to new ones in order to minimize the range of vertex IDs
-        HashMap<Integer, Integer> map = new HashMap<Integer, Integer>();
-        HashMap<Integer, Integer> mapBack = new HashMap<Integer, Integer>();
-
-        // Copy vertices
-        int index = 0;
-        for (int v : nodes) {
-            g.addVertex(index);
-            map.put(v, index);
-            mapBack.put(index, v);
-
-            index++;
-        }
-
-        // Copy edges
-        for (int v : g.nodes)
-            for (int w : adjacency.get(mapBack.get(v)))
-                if (map.get(w) > v)
-                    g.addEdge(v, map.get(w));
-
-        // Construct idMap for new graph, mapping new integer IDs to original string identifiers
-        HashMap<Integer, String> newIdMap = new HashMap<Integer, String>();
-        for (int i = 0; i < g.size(); i++)
-            newIdMap.put(i, idMap.get(mapBack.get(i)));
-        g.idMap = newIdMap;
-        return g;
-    }
-
     public void deleteVertex (int vertex) {
         for (int neighbor : adjacency.get(vertex))
             adjacency.get(neighbor).remove(vertex);
@@ -424,54 +398,6 @@ public class RtcGraph {
         for (int vertex : nodes)
             vertexNames.add(idMap.get(vertex));
         return vertexNames;
-    }
-
-    /** Returns the largest t, for which graph is a 2,t-club. t = n, if graph is a clique.
-     * @throws GraphException */
-    public int is2TClub (Model usedModel) {
-        int t = this.size();
-        for (int v : nodes)
-        {
-            for (int w : nodes)
-            {
-                if (w > v)
-                {
-                    if (adjacent(v, w) && usedModel == Model.HEREDITARY)
-                        continue;
-
-                    int lengthAtMost2Paths = countCommonNeighbors(v,w);
-                    if (adjacent(v, w))
-                        lengthAtMost2Paths++;
-
-                    if (lengthAtMost2Paths == 0)
-                        return -1; // not a 2-club at all -> something is wrong
-
-                    if ((usedModel == Model.HEREDITARY || usedModel == Model.VB_MODEL) && lengthAtMost2Paths < t)
-                        t = lengthAtMost2Paths + 1;
-
-                    if (usedModel == Model.BICONNECTED)
-                    {
-                        int tmpT = noOfInternallyVertexDisjointPaths(v, w);
-                        if (tmpT < t)
-                            t = tmpT;
-                    }
-                }
-            }
-        }
-        return t;
-    }
-
-    /** Returns whether a given subset of vertices forms a (not necessarily maximal) clique. */
-    public boolean isClique (HashSet<Integer> vertices) {
-        for (int v : vertices) for (int w : vertices) if (v > w)
-            if (!adjacent(v,w)) return false;
-        return true;
-    }
-
-    /** Returns whether the whole graph is a clique. */
-    public boolean isClique () {
-        if (nodes.size() * (nodes.size() - 1) / 2 == getEdgeCount()) return true;
-        else return false;
     }
 
     /** Returns whether the whole graph is connected. */
@@ -570,111 +496,9 @@ public class RtcGraph {
         }
     }
 
-    // only for internal usage in maxflow computation where we use digraphs...
-    private void augmentPath(LinkedList<Integer> path)
-    {
-        int lastVertex = path.removeFirst();
-        while (!path.isEmpty())
-        {
-            int nextVertex = path.removeFirst();
-
-            // reverse arc:
-            adjacency.get(lastVertex).remove(nextVertex);
-            adjacency.get(nextVertex).add(lastVertex);
-            lastVertex = nextVertex;
-        }
-    }
-
-    /**
-     * computes the number of (internally) vertex disjoint paths from v to w
-     * @param v
-     * @param w
-     * @return
-     */
-    public int noOfInternallyVertexDisjointPaths(int v, int w)
-    {
-        return noOfInternallyVertexDisjointPaths(v,w,Integer.MAX_VALUE);
-    }
-
-    /**
-     * Checks whether at least {@code bound} the number of (internally) vertex disjoint paths from v to w
-     * @param v
-     * @param w
-     * @param bound
-     * @return
-     */
-    public boolean enoughInternallyVertexDisjointPaths(int v, int w, int bound)
-    {
-        return noOfInternallyVertexDisjointPaths(v,w,bound) >= bound;
-    }
-
-
-    /**
-     * computes the number of (internally) vertex disjoint paths from v to w
-     * @param v
-     * @param w
-     * @param upperBoundToStop 	When at least this number of (internally) vertex disjoint paths from v to w, then the function stops searching for more.
-     * 							This improves the performance a bit.
-     * @return
-     */
-    private int noOfInternallyVertexDisjointPaths(int v, int w, int upperBoundToStop)
-    {
-        if (!nodes.contains(v) || !nodes.contains(w) || v == w)
-            return 0;
-
-        long time = System.nanoTime();
-
-        // use standard reduction to the problem of finding edge-disjoint paths:
-        // replace each vertex v by two vertices v1 and v2: one vertex v1 for the ingoing arcs and one vertex v2 for the outgoing arcs (plus one arc from v1 to v2). For simplicity we set v1 := v.
-        int maxVertexNo = 0;
-        for (int vertex : nodes)
-        {
-            if (maxVertexNo < vertex)
-                maxVertexNo = vertex;
-        }
-
-        RtcGraph residualGraph = new RtcGraph();
-
-        for (int vertex : nodes)
-        {
-            residualGraph.addVertex(vertex);
-            int newVertex = vertex + maxVertexNo + 1;
-            residualGraph.addVertex(newVertex);
-            residualGraph.addEdge(vertex, newVertex);
-
-            HashSet<Integer> neighbors = (HashSet<Integer>) this.getNeighbors(vertex).clone();
-
-            HashSet<Integer> newNeighbors = new HashSet<Integer>();
-            newNeighbors.add(newVertex);
-
-            residualGraph.adjacency.put(vertex, newNeighbors); // we build a directed graph so we cannot use addEdge
-            residualGraph.adjacency.put(newVertex, neighbors); // we build a directed graph so we cannot use addEdge
-        }
-
-        v = v + maxVertexNo + 1; // new starting vertex since v should be used in many paths
-
-        flowConstructGraph += System.nanoTime() - time;
-
-        int result = 0;
-        LinkedList<Integer> path;
-        while ( (path = residualGraph.getPath(v, w)) != null )
-        {
-            result++;
-
-            if (upperBoundToStop <= result)
-                return upperBoundToStop;
-
-            residualGraph.augmentPath(path);
-        }
-
-        return result;
-    }
-
-
     public void writeToFile(String directory, String filename, String[] header) {
         writeToFile(directory, filename, header, 0);
     }
-
 
     /** Writes this graph to disk in edge list format.
      *
@@ -719,155 +543,6 @@ public class RtcGraph {
         }
     }
 
-    public static RtcGraph ErdosRenyi (int n, double p) {
-        RtcGraph g = new RtcGraph();
-        HashMap<Integer, String> map = new HashMap<Integer, String>();
-        for (int i = 0; i < n; i++) {
-            g.addVertex(i);
-            map.put(i, Integer.toString(i));
-        }
-        for (int v = 0; v < n; v++)
-            for (int w = v+1; w < n; w++)
-                if (Math.random() < p)
-                    g.addEdge(v, w);
-        g.idMap = map;
-        return g;
-    }
-
-    public static RtcGraph Gendreau (int n, double a, double b) {
-        RtcGraph g = new RtcGraph();
-        HashMap<Integer, String> map = new HashMap<Integer, String>();
-        double[] probabilities = new double[n];
-        for (int i = 0; i < n; i++) {
-            g.addVertex(i);
-            map.put(i, Integer.toString(i));
-            probabilities[i] = Math.random()*(b-a) + a;
-        }
-        for (int v = 0; v < n; v++)
-            for (int w = v+1; w < n; w++)
-                if (Math.random() < (probabilities[v] + probabilities[w])/2)
-                    g.addEdge(v, w);
-        g.idMap = map;
-        return g;
-    }
-
-    public static RtcGraph AlternateGendreau (int n, double a, double b) {
-        RtcGraph g = new RtcGraph();
-        HashMap<Integer, String> map = new HashMap<Integer, String>();
-        double[] probabilities = new double[n];
-        for (int i = 0; i < n; i++) {
-            g.addVertex(i);
-            map.put(i, Integer.toString(i));
-            probabilities[i] = Math.random()*(b-a) + a;
-        }
-        for (int v = 0; v < n; v++)
-            for (int w = v+1; w < n; w++)
-                if (Math.random() < probabilities[v] * probabilities[w])
-                    g.addEdge(v, w);
-        g.idMap = map;
-        return g;
-    }
-
-    /**
-     *
-     * @param n
-     * @param deg
-     * @param seeds
-     * @param cycle		Set to true to seed from a cycle and false to seed from a clique.
-     * @return
-     * @throws GraphException
-     */
-    public static RtcGraph BarabasiAlbert (int n, int deg, int seeds, boolean cycle) {
-        RtcGraph g = new RtcGraph();
-        HashMap<Integer, String> map = new HashMap<Integer, String>();
-        int degreeSum = (seeds - 1) * seeds;
-        if (cycle) degreeSum = 2 * seeds;
-        int[] accumulatedDegrees = new int[n];
-        if (cycle) for (int i = 0; i < seeds; i++)
-            accumulatedDegrees[i] = (i+1) * 2;
-        if (!cycle) for (int i = 0; i < seeds; i++)
-            accumulatedDegrees[i] = (i+1) * (seeds - 1);
-        for (int i = 0; i < seeds; i++) {
-            g.addVertex(i);
-            map.put(i, Integer.toString(i));
-            if (cycle) {
-                if (i>0) g.addEdge(i, i-1);
-                if (i==seeds-1) g.addEdge(i, 0);
-            } else for (int j = 0; j < i; j++)
-                g.addEdge(i, j);
-        }
-        for (int i = seeds; i < n; i++) {
-            g.addVertex(i);
-            map.put(i, Integer.toString(i));
-            for (int e = 0; e < deg; e++) {
-                int pickedVertex = -1;
-                while (pickedVertex == -1 || g.adjacent(i, pickedVertex)) {
-                    int rand = (int) (Math.random() * degreeSum);
-                    int vertexPointer = 0;
-                    while (accumulatedDegrees[vertexPointer] < rand)
-                        vertexPointer++;
-                    pickedVertex = vertexPointer;
-                }
-                g.addEdge(i, pickedVertex);
-                degreeSum += 1;
-                for (int j = pickedVertex; j < i; j++)
-                    accumulatedDegrees[j]++;
-            }
-            degreeSum += deg;
-            accumulatedDegrees[i] = accumulatedDegrees[i-1] + deg;
-        }
-        g.idMap = map;
-        return g;
-    }
-
-    public static RtcGraph RandomRoughlyRegular (int n, int deg) {
-        if (n < deg-1 || n % 2 + deg % 2 == 2) return null;
-        RtcGraph g = new RtcGraph();
-        HashMap<Integer, String> map = new HashMap<Integer, String>();
-        HashMap<Integer, ArrayList<Integer>> degreeBuckets = new HashMap<Integer, ArrayList<Integer>>();
-        for (int d = 0; d <= deg+1; d++)
-            degreeBuckets.put(d, new ArrayList<Integer>());
-        for (int v = 0; v < n; v++) {
-            g.addVertex(v);
-            map.put(v, Integer.toString(v));
-            degreeBuckets.get(0).add(v);
-        }
-        int edges = 0;
-        while (edges != n*deg/2) {
-            int bucketPtr = 0;
-            while (degreeBuckets.get(bucketPtr).size() == 0)
-                bucketPtr++;
-            int firstVertexPos = (int)(Math.random() * (degreeBuckets.get(bucketPtr).size()));
-            int firstVertex = degreeBuckets.get(bucketPtr).remove(firstVertexPos);
-            int bucketPtr2 = bucketPtr;
-            while (degreeBuckets.get(bucketPtr2).size() == 0)
-                bucketPtr2++;
-            while (bucketPtr2 <= deg) {
-                boolean stop = false;
-                for (int v : degreeBuckets.get(bucketPtr2)) {
-                    if (!g.adjacent(firstVertex, v)) {
-                        stop = true; break;
-                    }
-                }
-                if (stop) break;
-                bucketPtr2++;
-            }
-            int secondVertexPos = (int)(Math.random() * (degreeBuckets.get(bucketPtr2).size()));
-            int secondVertex = degreeBuckets.get(bucketPtr2).remove(secondVertexPos);
-            if (!g.adjacent(firstVertex, secondVertex)) {
-                g.addEdge(firstVertex, secondVertex);
-                degreeBuckets.get(bucketPtr+1).add(firstVertex);
-                degreeBuckets.get(bucketPtr2+1).add(secondVertex);
-                edges++;
-            } else {
-                degreeBuckets.get(bucketPtr).add(firstVertex);
-                degreeBuckets.get(bucketPtr2).add(secondVertex);
-            }
-        }
-        g.idMap = map;
-        return g;
-    }
-
     public RtcGraph () {
         idMap = new HashMap<Integer, String>();
         nodes = new HashSet<Integer>();
@@ -884,7 +559,6 @@ public class RtcGraph {
         adjacency.put(v, new HashSet<Integer>());
         idMap.put(v, name);
     }
-
 
     public void addEdge (Integer v, Integer w) {
         if (v == w) return;		// No loops!
