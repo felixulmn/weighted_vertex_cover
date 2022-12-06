@@ -24,9 +24,9 @@ public class RtcGraph {
 
     }
 
-    private HashMap<Integer, String> idMap;					// remembers vertex names for outputting solution graphs
-    private HashSet<Integer> nodes;							// set of vertices of the graph
-    private HashMap<Integer, HashSet<Integer>> adjacency;	// sparse adjacency matrix of the graph
+    public HashMap<Integer, String> idMap;					// remembers vertex names for outputting solution graphs
+    public HashSet<Integer> nodes;							// set of vertices of the graph
+    public HashMap<Integer, HashSet<Integer>> adjacency;	// sparse adjacency matrix of the graph
 
     /** Loads a graph from a DIMACS or METIS file.
      *
@@ -564,6 +564,78 @@ public class RtcGraph {
         if (v == w) return;		// No loops!
         adjacency.get(v).add(w);
         adjacency.get(w).add(v);
+    }
+
+    /**
+     * check if given vertex set is independent using the graphs edges
+     * @param vertexSet the vertex set to be tested
+     * @return returns true if vertex set is independent, false if not.
+     */
+    public boolean isIndependent(HashSet<Integer> vertexSet) {
+        //System.out.println(String.format("Vertexset: %s", vertexSet));
+        for(Integer v : vertexSet) {
+            //System.out.println(String.format("Vertex: %s - Neighbours: %s", v, this.adjacency.get(v)));
+            for(Integer n_v : this.adjacency.get(v)) {
+                if(vertexSet.contains(n_v))
+                    return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * creates graph from online graph tool format
+     * @param fileName
+     */
+    public static RtcGraph createGraphFromOnlineFile(String fileName) {
+
+        HashSet<Integer> vertices;
+        HashMap<Integer, HashSet<Integer>> edges = new HashMap<>();
+
+        try {
+            File file = new File(fileName);
+            final LineNumberReader reader = new LineNumberReader(new FileReader(file));
+
+            // prepare vertex set and adjacency map
+            int vertexCount = Integer.parseInt(reader.readLine());
+            vertices = new HashSet<>(vertexCount*2);
+            edges = new HashMap<>(vertexCount*2);
+
+            for (int v = 0; v < vertexCount; v++) {
+                vertices.add(v);
+                edges.put(v,new HashSet<>());
+            }
+
+            // populate graph with edges
+            String str;
+            while ((str = reader.readLine()) != null) {
+                StringTokenizer tokens = new StringTokenizer(str);
+                Integer a = Integer.parseInt(tokens.nextToken());
+                Integer b = Integer.parseInt(tokens.nextToken());
+
+                edges.get(a).add(b);
+                edges.get(b).add(a);
+            }
+
+            return new RtcGraph(vertices, edges);
+
+        } catch (IOException e) {
+            System.out.println("Could not locate input file '"+fileName+"'.");
+            System.exit(0);
+        }
+
+        return null;
+    }
+
+    /**
+     * creates graph from set of nodes and adjacency matrix
+     * @param vertices a hashset containing all vertices
+     * @param edges a hashmap that maps vertices to a hashset of neighbouring vertices
+     */
+    public RtcGraph(HashSet<Integer> vertices, HashMap<Integer, HashSet<Integer>> edges) {
+        this.idMap = null;
+        this.nodes = vertices;
+        this.adjacency = edges;
     }
 
 }
