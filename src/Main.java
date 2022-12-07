@@ -1,7 +1,9 @@
 import robustTwoClub.graph.RtcGraph;
+import com.felixullmann.graphs.Set;
 
 import java.util.Arrays;
 import java.util.HashSet;
+
 
 /*
     USED DATASETS
@@ -45,7 +47,7 @@ public class Main {
 
         // isIndependent
 
-        RtcGraph myGraph = RtcGraph.createGraphFromOnlineFile("datasets/mydataset.txt");
+/*        RtcGraph myGraph = RtcGraph.createGraphFromOnlineFile("datasets/mydataset.txt");
 
         HashSet<Integer> independent = new HashSet<>(Arrays.asList(0,1,3));
         HashSet<Integer> notIndependent = new HashSet<>(Arrays.asList(0,1,2));
@@ -58,8 +60,24 @@ public class Main {
 
 
         System.out.println(myGraph.isIndependent(independent));
-        System.out.println(myGraph.isIndependent(notIndependent));
+        System.out.println(myGraph.isIndependent(notIndependent));*/
 
+
+        Set<Integer> independent = new Set<>();
+        Set<Integer> notIndependent = new Set<>();
+
+        independent.add(0);
+        independent.add(1);
+        independent.add(3);
+
+        notIndependent.add(0);
+        notIndependent.add(1);
+        notIndependent.add(2);
+
+        Set<Integer> difference = independent.minus(notIndependent);
+        System.out.println(difference);
+        System.out.println(independent);
+        System.out.println(notIndependent);
 
 
 
