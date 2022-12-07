@@ -1,8 +1,24 @@
 package com.felixullmann.graphs;
 
+import java.util.Collection;
 import java.util.HashSet;
 
 public class Set<T> extends HashSet<T> {
+
+    public Set() {
+        super();
+    }
+    public Set(Collection<? extends T> c) {
+        super(c);
+    }
+
+    public Set(int initialCapacity) {
+        super(initialCapacity);
+    }
+
+    public Set(int initialCapacity,float loadFactor) {
+        super(initialCapacity, loadFactor);
+    }
 
     public Set<T> union(Set<T> partner) {
         Set<T> union = (Set<T>) this.clone();
