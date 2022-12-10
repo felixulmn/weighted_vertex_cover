@@ -23,7 +23,6 @@ public class Main {
         }
 
 
-
         System.out.println(IntegerGraph.isIndependent(independent,myGraph.adjacency));
         System.out.println(IntegerGraph.isIndependent(notIndependent,myGraph.adjacency));
 
