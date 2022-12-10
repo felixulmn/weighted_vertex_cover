@@ -31,8 +31,5 @@ public class Main {
         System.out.println(independent);
         System.out.println(notIndependent);
 
-
-
-
     }
 }

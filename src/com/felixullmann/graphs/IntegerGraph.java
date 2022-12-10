@@ -67,9 +67,7 @@ public class IntegerGraph {
      * @return true when vertexSet is independent, false otherwise
      */
     public static boolean isIndependent(Set<Integer> vertexSet, HashMap<Integer,Set<Integer>> adjacency) {
-        //System.out.println(String.format("Vertexset: %s", vertexSet));
         for(Integer v : vertexSet) {
-            //System.out.println(String.format("Vertex: %s - Neighbours: %s", v, this.adjacency.get(v)));
             for(Integer n_v : adjacency.get(v)) {
                 if(vertexSet.contains(n_v))
                     return false;
