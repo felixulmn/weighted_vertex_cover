@@ -13,7 +13,18 @@ public class Main {
 
         IntegerGraph myGraph = new IntegerGraph("datasets/mydataset.txt");
 
-        Set<Integer> independent = new Set<>(Arrays.asList(0,1,3));
+        // Set<Integer> initialCover = new Set<>(Arrays.asList(0,1,2,3,4));
+        Set<Integer> initialCover = new Set<>(Arrays.asList(0,1,2,4));
+        Set<Integer> minCover = IntegerGraph.localSearch(myGraph.adjacency, initialCover, 5);
+
+        System.out.println(initialCover);
+        System.out.println(String.format("Is cover: %s",IntegerGraph.isVertexCover(initialCover, myGraph.adjacency)));
+        System.out.println();
+        System.out.println(minCover);
+        System.out.println(String.format("Is cover: %s",IntegerGraph.isVertexCover(initialCover, myGraph.adjacency)));
+
+
+/*        Set<Integer> independent = new Set<>(Arrays.asList(0,1,3));
         Set<Integer> notIndependent = new Set<>(Arrays.asList(0,1,2));
 
         System.out.println(myGraph.vertices);
@@ -29,7 +40,7 @@ public class Main {
         Set<Integer> difference = independent.minus(notIndependent);
         System.out.println(difference);
         System.out.println(independent);
-        System.out.println(notIndependent);
+        System.out.println(notIndependent);*/
 
     }
 }

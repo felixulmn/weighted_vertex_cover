@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.LineNumberReader;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Stack;
 import java.util.StringTokenizer;
 
 public class IntegerGraph {
@@ -118,4 +119,64 @@ public class IntegerGraph {
         return copy;
     }
 
+    public static Set<Integer> localSearch(HashMap<Integer, Set<Integer>> adjacency, Set<Integer> cover, int kMax) {
+        Set<Integer> S;
+        Stack<Integer> P = new Stack();
+        Integer p;
+        Set<Integer> F;
+
+        for(int k = 1; k <= kMax; k++) {
+            for(Integer vertex : cover) {
+                S = getNeighbors(vertex, adjacency).minus(cover);
+                S.add(vertex);
+                P.addAll(getNeighbors(vertex, adjacency).minus(cover));
+                if(P.isEmpty()) // TODO this is not validated but used to avoid EmptyStackException
+                    continue;
+                p = P.pop();
+                F = getNeighbors(vertex,adjacency).intersect(cover);
+                S = enumerate(k, cover, adjacency, S, p, P, F);
+                if(S.size() != 0) {
+                    cover = cover.minus(S).union(S.minus(cover));
+                    break;
+                }
+
+            }
+        }
+
+        return cover;
+    }
+
+    public static Set<Integer> enumerate(int k, Set<Integer> cover, HashMap<Integer, Set<Integer>> adjacency, Set<Integer> S, Integer p, Stack<Integer> P, Set<Integer> F) {
+        Set<Integer> s_intersect_c = S.intersect(cover);
+        if(s_intersect_c.size() > Math.ceil(k/2) || S.minus(cover).size() > Math.floor(k/2) || !isIndependent(s_intersect_c, adjacency))
+            return new Set<>();
+
+        if(S.size() == k)
+            return S;
+
+        for(Integer b : getNeighbors(p, adjacency).minus(S.union(F))) {
+            Set<Integer> nb = getNeighbors(b, adjacency);
+            if(nb.intersect(F.minus(cover)).size() == 0) {
+                nb = nb.minus(S.union(cover));
+                Stack<Integer> PP = (Stack<Integer>) P.clone();
+                PP.add(p);
+                PP.addAll(nb);
+                Integer pp = PP.pop();
+
+                Set<Integer> SS = S.union(nb);
+                SS.add(b);
+
+                Set<Integer> result = enumerate(k,cover,adjacency,SS,pp, PP, F);
+                if(result.size() != 0)
+                    return result;
+            }
+            F.add(b);
+        }
+
+
+        if(P.isEmpty()) // TODO this is not validated but used to avoid EmptyStackException
+            return new Set<>();
+        Integer pp = P.pop();
+        return enumerate(k, cover, adjacency, S, pp, P, F);
+    }
 }
