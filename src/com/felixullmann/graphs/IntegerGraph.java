@@ -7,12 +7,18 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.LineNumberReader;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.StringTokenizer;
 
 public class IntegerGraph {
 
     public Set<Integer> vertices;
     public HashMap<Integer, Set<Integer>> adjacency;
+
+    public IntegerGraph(Set<Integer> vertices, HashMap<Integer, Set<Integer>> adjacency) {
+        this.vertices = vertices;
+        this.adjacency = adjacency;
+    }
 
     /**
      * loads graph from file containing graph information in the format from https://csacademy.com/app/graph_editor/
@@ -75,4 +81,41 @@ public class IntegerGraph {
         }
         return true;
     }
+
+    /**
+     * Determines if a given vertex set from a graph is a vertex cover
+     * @param vertexSet the set of vertices to be tested
+     * @param adjacency the matrix containing all adjacencies of the underlying graph
+     * @return true when vertexSet is a vertex cover, false otherwise
+     */
+    public static boolean isVertexCover(Set<Integer> vertexSet, HashMap<Integer,Set<Integer>> adjacency) {
+        HashMap<Integer, Set<Integer>> edges = getAdjacencyCopy(adjacency);
+
+        for(Map.Entry<Integer, Set<Integer>> entry : edges.entrySet()) {
+            if(vertexSet.contains(entry.getKey()))
+                continue;
+
+            for(Integer neighbor : entry.getValue()) {
+                if(!vertexSet.contains(neighbor))
+                    return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Creates and returns a deep copy of adjacency
+     * @return the copy of adjacency
+     */
+    public static HashMap<Integer, Set<Integer>> getAdjacencyCopy(HashMap<Integer,Set<Integer>> adjacency) {
+        HashMap<Integer, Set<Integer>> copy = new HashMap<>();
+
+        adjacency.forEach((vertex, neighbors) -> {
+            copy.put(vertex, (Set<Integer>) neighbors.clone());
+        });
+
+        return copy;
+    }
+
 }

@@ -12,6 +12,7 @@ public class IntegerGraphTest {
 
     private Set<Integer> vertices;
     private HashMap<Integer, Set<Integer>> adjacency;
+    private IntegerGraph myGraph;
 
     @Before
     public void setUp() {
@@ -24,6 +25,8 @@ public class IntegerGraphTest {
         adjacency.put(3, new Set<>(Arrays.asList(2)));
         adjacency.put(4, new Set<>(Arrays.asList(0, 1, 2, 5)));
         adjacency.put(5, new Set<>(Arrays.asList(1, 4)));
+
+        myGraph = new IntegerGraph(vertices, adjacency);
     }
 
     @Test
@@ -36,7 +39,6 @@ public class IntegerGraphTest {
         assertTrue(IntegerGraph.isIndependent(independent, adjacency));
     }
 
-
     @Test
     public void getNeighbors() {
         assertEquals(new Set<>(Arrays.asList(2)), IntegerGraph.getNeighbors(3, adjacency));
@@ -44,4 +46,19 @@ public class IntegerGraphTest {
         assertEquals(new Set<>(Arrays.asList(5,4)), IntegerGraph.getNeighbors(1, adjacency));
     }
 
+    @Test
+    public void isVertexCover() {
+        assertTrue(IntegerGraph.isVertexCover(vertices, adjacency));
+        assertTrue(IntegerGraph.isVertexCover(new Set<>(Arrays.asList(2,4,5)), adjacency));
+        assertFalse(IntegerGraph.isVertexCover(new Set<>(Arrays.asList(2,1,0)), adjacency));
+        assertFalse(IntegerGraph.isVertexCover(new Set<>(Arrays.asList(4,5,0,1)), adjacency));
+    }
+
+    @Test
+    public void getAdjacencyCopy() {
+        HashMap<Integer, Set<Integer>> copy = myGraph.getAdjacencyCopy(adjacency);
+        assertEquals(adjacency, copy);
+        adjacency.get(2).add(1);
+        assertNotEquals(adjacency, copy);
+    }
 }
