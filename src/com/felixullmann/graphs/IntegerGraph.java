@@ -125,7 +125,7 @@ public class IntegerGraph {
         Integer p;
         Set<Integer> F;
 
-        for(int k = 1; k <= kMax; k++) {
+        for(int k = 1; k <= kMax; k+=2) {
             for(Integer vertex : cover) {
                 S = getNeighbors(vertex, adjacency).minus(cover);
                 S.add(vertex);
@@ -148,7 +148,7 @@ public class IntegerGraph {
 
     public static Set<Integer> enumerate(int k, Set<Integer> cover, HashMap<Integer, Set<Integer>> adjacency, Set<Integer> S, Integer p, Stack<Integer> P, Set<Integer> F) {
         Set<Integer> s_intersect_c = S.intersect(cover);
-        if(s_intersect_c.size() > Math.ceil(k/2) || S.minus(cover).size() > Math.floor(k/2) || !isIndependent(s_intersect_c, adjacency))
+        if(s_intersect_c.size() > Math.ceil((k+1)/2) || S.minus(cover).size() > k/2 || !isIndependent(s_intersect_c, adjacency))
             return new Set<>();
 
         if(S.size() == k)

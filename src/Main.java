@@ -21,6 +21,7 @@ public class Main {
         System.out.println(String.format("Is cover: %s",IntegerGraph.isVertexCover(initialCover, myGraph.adjacency)));
         System.out.println();
         System.out.println(minCover);
+        System.out.println(String.format("Size of cover: %d", minCover.size()));
         System.out.println(String.format("Is cover: %s",IntegerGraph.isVertexCover(initialCover, myGraph.adjacency)));
 
 
