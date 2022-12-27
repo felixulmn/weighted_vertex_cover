@@ -35,7 +35,7 @@ public class IntegerGraph {
             vertices = new Set<>(vertexCount*2);
             adjacency = new HashMap<>(vertexCount*2);
 
-            for (int v = 0; v < vertexCount; v++) {
+            for (int v = 1; v <= vertexCount; v++) {
                 vertices.add(v);
                 adjacency.put(v,new Set<>());
             }
@@ -122,7 +122,7 @@ public class IntegerGraph {
     public static Set<Integer> localSearch(HashMap<Integer, Set<Integer>> adjacency, Set<Integer> cover, int kMax) {
         Set<Integer> S;
         Stack<Integer> P = new Stack();
-        Integer p;
+        Integer p = null;
         Set<Integer> F;
 
         for(int k = 1; k <= kMax; k+=2) {
@@ -130,9 +130,10 @@ public class IntegerGraph {
                 S = getNeighbors(vertex, adjacency).minus(cover);
                 S.add(vertex);
                 P.addAll(getNeighbors(vertex, adjacency).minus(cover));
-                if(P.isEmpty()) // TODO this is not validated but used to avoid EmptyStackException
+                if(k != 1 && P.isEmpty()) // TODO this is not validated but used to avoid EmptyStackException
                     continue;
-                p = P.pop();
+                if(k != 1)
+                    p = P.pop();
                 F = getNeighbors(vertex,adjacency).intersect(cover);
                 S = enumerate(k, cover, adjacency, S, p, P, F);
                 if(S.size() != 0) {

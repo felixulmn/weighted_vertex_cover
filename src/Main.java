@@ -11,11 +11,10 @@ import java.util.Arrays;
 public class Main {
     public static void main(String[] args) {
 
-        IntegerGraph myGraph = new IntegerGraph("datasets/mydataset.txt");
-
-        // Set<Integer> initialCover = new Set<>(Arrays.asList(0,1,2,3,4));
-        Set<Integer> initialCover = new Set<>(Arrays.asList(0,1,2,4));
-        Set<Integer> minCover = IntegerGraph.localSearch(myGraph.adjacency, initialCover, 5);
+        IntegerGraph myGraph = new IntegerGraph("datasets/C125-9.mtx");
+        
+        Set<Integer> initialCover = (Set<Integer>) myGraph.vertices.clone();
+        Set<Integer> minCover = IntegerGraph.localSearch(myGraph.adjacency, initialCover, 30);
 
         System.out.println(initialCover);
         System.out.println(String.format("Is cover: %s",IntegerGraph.isVertexCover(initialCover, myGraph.adjacency)));
