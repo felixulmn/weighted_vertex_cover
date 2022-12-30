@@ -1,7 +1,5 @@
 package com.felixullmann.graphs;
 
-import robustTwoClub.graph.RtcGraph;
-
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;

@@ -12,7 +12,7 @@ public class Main {
     public static void main(String[] args) {
 
         IntegerGraph myGraph = new IntegerGraph("datasets/C125-9.mtx");
-        
+
         Set<Integer> initialCover = (Set<Integer>) myGraph.vertices.clone();
         Set<Integer> minCover = IntegerGraph.localSearch(myGraph.adjacency, initialCover, 30);
 
