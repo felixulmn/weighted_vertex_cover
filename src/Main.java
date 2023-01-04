@@ -22,17 +22,17 @@ public class Main {
 
         Set<Integer> initialCover = (Set<Integer>) myGraph.vertices.clone();
         System.out.println("Initial solution");
-        System.out.println(String.format("Is cover: %s",IntegerGraph.isVertexCover(initialCover, myGraph.adjacency)));
+        System.out.println(String.format("Is cover: %s",myGraph.isVertexCover(initialCover)));
         System.out.println(String.format("Size: %d", initialCover.size()));
         System.out.println();
 
 
         // Calculate minimum vertex cover and measure time
         long start = System.currentTimeMillis();
-        Set<Integer> minCover = IntegerGraph.localSearch(myGraph.adjacency, initialCover, 30);
+        Set<Integer> minCover = myGraph.localSearch(initialCover, 30);
 
         System.out.println("Took " + ((System.currentTimeMillis()-start)/1000.0) +  " seconds to calculate minimum vertex cover.");
-        System.out.println(String.format("Is cover: %s",IntegerGraph.isVertexCover(initialCover, myGraph.adjacency)));
+        System.out.println(String.format("Is cover: %s",myGraph.isVertexCover(minCover)));
         System.out.println(String.format("Size: %d", minCover.size()));
 
     }

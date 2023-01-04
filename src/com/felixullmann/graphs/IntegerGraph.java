@@ -61,7 +61,7 @@ public class IntegerGraph {
      * @param adjacency the matrix containing all adjacencies of the underlying graph
      * @return set of integers representing the neighbors
      */
-    public static Set<Integer> getNeighbors(Integer vertex, HashMap<Integer,Set<Integer>> adjacency) {
+    public Set<Integer> getNeighbors(Integer vertex, HashMap<Integer,Set<Integer>> adjacency) {
         return (Set<Integer>) adjacency.get(vertex).clone();
     }
 
@@ -71,7 +71,7 @@ public class IntegerGraph {
      * @param adjacency the matrix containing all adjacencies of the underlying graph
      * @return true when vertexSet is independent, false otherwise
      */
-    public static boolean isIndependent(Set<Integer> vertexSet, HashMap<Integer,Set<Integer>> adjacency) {
+    public boolean isIndependent(Set<Integer> vertexSet, HashMap<Integer,Set<Integer>> adjacency) {
         for(Integer v : vertexSet) {
             for(Integer n_v : adjacency.get(v)) {
                 if(vertexSet.contains(n_v))
@@ -84,11 +84,10 @@ public class IntegerGraph {
     /**
      * Determines if a given vertex set from a graph is a vertex cover
      * @param vertexSet the set of vertices to be tested
-     * @param adjacency the matrix containing all adjacencies of the underlying graph
      * @return true when vertexSet is a vertex cover, false otherwise
      */
-    public static boolean isVertexCover(Set<Integer> vertexSet, HashMap<Integer,Set<Integer>> adjacency) {
-        HashMap<Integer, Set<Integer>> edges = getAdjacencyCopy(adjacency);
+    public boolean isVertexCover(Set<Integer> vertexSet) {
+        HashMap<Integer, Set<Integer>> edges = getAdjacencyCopy();
 
         for(Map.Entry<Integer, Set<Integer>> entry : edges.entrySet()) {
             if(vertexSet.contains(entry.getKey()))
@@ -107,7 +106,7 @@ public class IntegerGraph {
      * Creates and returns a deep copy of adjacency
      * @return the copy of adjacency
      */
-    public static HashMap<Integer, Set<Integer>> getAdjacencyCopy(HashMap<Integer,Set<Integer>> adjacency) {
+    public HashMap<Integer, Set<Integer>> getAdjacencyCopy() {
         HashMap<Integer, Set<Integer>> copy = new HashMap<>();
 
         adjacency.forEach((vertex, neighbors) -> {
@@ -117,7 +116,7 @@ public class IntegerGraph {
         return copy;
     }
 
-    public static Set<Integer> localSearch(HashMap<Integer, Set<Integer>> adjacency, Set<Integer> cover, int kMax) {
+    public Set<Integer> localSearch(Set<Integer> cover, int kMax) {
         Set<Integer> S;
         Stack<Integer> P = new Stack();
         Integer p = null;
@@ -145,7 +144,7 @@ public class IntegerGraph {
         return cover;
     }
 
-    public static Set<Integer> enumerate(int k, Set<Integer> cover, HashMap<Integer, Set<Integer>> adjacency, Set<Integer> S, Integer p, Stack<Integer> P, Set<Integer> F) {
+    public Set<Integer> enumerate(int k, Set<Integer> cover, HashMap<Integer, Set<Integer>> adjacency, Set<Integer> S, Integer p, Stack<Integer> P, Set<Integer> F) {
         Set<Integer> s_intersect_c = S.intersect(cover);
         if(s_intersect_c.size() > Math.ceil((k+1)/2) || S.minus(cover).size() > k/2 || !isIndependent(s_intersect_c, adjacency))
             return new Set<>();
