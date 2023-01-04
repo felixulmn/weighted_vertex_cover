@@ -116,7 +116,7 @@ public class IntegerGraph {
         return copy;
     }
 
-    public Set<Integer> localSearch(Set<Integer> cover, int kMax) {
+    public Set<Integer> mvc_localsearch(Set<Integer> cover, int kMax) {
         Set<Integer> S;
         Stack<Integer> P = new Stack();
         Integer p = null;

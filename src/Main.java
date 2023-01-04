@@ -1,8 +1,6 @@
 import com.felixullmann.graphs.IntegerGraph;
 import com.felixullmann.graphs.Set;
 
-import java.util.Arrays;
-
 
 /*
     USED DATASETS
@@ -29,7 +27,7 @@ public class Main {
 
         // Calculate minimum vertex cover and measure time
         long start = System.currentTimeMillis();
-        Set<Integer> minCover = myGraph.localSearch(initialCover, 30);
+        Set<Integer> minCover = myGraph.mvc_localsearch(initialCover, 30);
 
         System.out.println("Took " + ((System.currentTimeMillis()-start)/1000.0) +  " seconds to calculate minimum vertex cover.");
         System.out.println(String.format("Is cover: %s",myGraph.isVertexCover(minCover)));
