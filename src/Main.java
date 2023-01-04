@@ -11,36 +11,29 @@ import java.util.Arrays;
 public class Main {
     public static void main(String[] args) {
 
-        IntegerGraph myGraph = new IntegerGraph("datasets/C125-9.mtx");
+        IntegerGraph myGraph = null;
 
-        Set<Integer> initialCover = (Set<Integer>) myGraph.vertices.clone();
-        Set<Integer> minCover = IntegerGraph.localSearch(myGraph.adjacency, initialCover, 30);
-
-        System.out.println(initialCover);
-        System.out.println(String.format("Is cover: %s",IntegerGraph.isVertexCover(initialCover, myGraph.adjacency)));
-        System.out.println();
-        System.out.println(minCover);
-        System.out.println(String.format("Size of cover: %d", minCover.size()));
-        System.out.println(String.format("Is cover: %s",IntegerGraph.isVertexCover(initialCover, myGraph.adjacency)));
-
-
-/*        Set<Integer> independent = new Set<>(Arrays.asList(0,1,3));
-        Set<Integer> notIndependent = new Set<>(Arrays.asList(0,1,2));
-
-        System.out.println(myGraph.vertices);
-
-        for(Integer v : myGraph.vertices) {
-            System.out.println(String.format("Vertex: %s - Neighbours: %s", v, myGraph.adjacency.get(v)));
+        try {
+            myGraph = new IntegerGraph(args[0]);
+        } catch (IndexOutOfBoundsException e) {
+            System.out.println("Please provide a path to the problem file.");
+            System.exit(1);
         }
 
+        Set<Integer> initialCover = (Set<Integer>) myGraph.vertices.clone();
+        System.out.println("Initial solution");
+        System.out.println(String.format("Is cover: %s",IntegerGraph.isVertexCover(initialCover, myGraph.adjacency)));
+        System.out.println(String.format("Size: %d", initialCover.size()));
+        System.out.println();
 
-        System.out.println(IntegerGraph.isIndependent(independent,myGraph.adjacency));
-        System.out.println(IntegerGraph.isIndependent(notIndependent,myGraph.adjacency));
 
-        Set<Integer> difference = independent.minus(notIndependent);
-        System.out.println(difference);
-        System.out.println(independent);
-        System.out.println(notIndependent);*/
+        // Calculate minimum vertex cover and measure time
+        long start = System.currentTimeMillis();
+        Set<Integer> minCover = IntegerGraph.localSearch(myGraph.adjacency, initialCover, 30);
+
+        System.out.println("Took " + ((System.currentTimeMillis()-start)/1000.0) +  " seconds to calculate minimum vertex cover.");
+        System.out.println(String.format("Is cover: %s",IntegerGraph.isVertexCover(initialCover, myGraph.adjacency)));
+        System.out.println(String.format("Size: %d", minCover.size()));
 
     }
 }
