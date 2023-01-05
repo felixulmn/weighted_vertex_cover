@@ -68,7 +68,6 @@ public class IntegerGraph {
                 a = Integer.parseInt(tokens.nextToken());
                 b = Integer.parseInt(tokens.nextToken());
 
-                System.out.println(a + "  " + b);
                 adjacency.get(a).add(b);
                 adjacency.get(b).add(a);
             }
@@ -163,12 +162,12 @@ public class IntegerGraph {
         Integer p = null;
         Set<Integer> F;
 
-        for(int k = 1; k <= kMax; k+=2) {
+        for(int k = 1; k <= kMax; k++) {
             for(Integer vertex : cover) {
                 S = getNeighbors(vertex).minus(cover);
                 S.add(vertex);
                 P.addAll(getNeighbors(vertex).minus(cover));
-                if(k != 1 && P.isEmpty()) // TODO this is not validated but used to avoid EmptyStackException
+                if(k != 1 && P.isEmpty())
                     continue;
                 if(k != 1)
                     p = P.pop();
@@ -187,10 +186,11 @@ public class IntegerGraph {
 
     public Set<Integer> enumerate(int k, Set<Integer> cover, Set<Integer> S, Integer p, Stack<Integer> P, Set<Integer> F) {
         Set<Integer> s_intersect_c = S.intersect(cover);
-        if(s_intersect_c.size() > Math.ceil((k+1)/2) || S.minus(cover).size() > k/2 || !isIndependent(s_intersect_c))
+
+        if(getSetWeight(S) > k || !isIndependent(s_intersect_c))
             return new Set<>();
 
-        if(S.size() == k)
+        if(getSetWeight(s_intersect_c) - getSetWeight(S.minus(cover)) > 0)
             return S;
 
         for(Integer b : getNeighbors(p).minus(S.union(F))) {
