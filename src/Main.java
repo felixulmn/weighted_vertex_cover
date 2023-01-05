@@ -12,7 +12,7 @@ public class Main {
         IntegerGraph myGraph = null;
 
         try {
-            myGraph = new IntegerGraph(args[0]);
+            myGraph = IntegerGraph.fromVehicleRoutingApplication(args[0]);
         } catch (IndexOutOfBoundsException e) {
             System.out.println("Please provide a path to the problem file.");
             System.exit(1);

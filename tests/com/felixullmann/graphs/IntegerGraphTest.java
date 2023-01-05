@@ -12,12 +12,14 @@ public class IntegerGraphTest {
 
     private Set<Integer> vertices;
     private HashMap<Integer, Set<Integer>> adjacency;
+    private HashMap<Integer, Integer> weights;
     private IntegerGraph myGraph;
 
     @Before
     public void setUp() {
         vertices = new Set<>(Arrays.asList(0,1,2,3,4,5));
         adjacency = new HashMap<>();
+        weights = new HashMap<>();
 
         adjacency.put(0, new Set<>(Arrays.asList(2, 4, 5)));
         adjacency.put(1, new Set<>(Arrays.asList(4, 5)));
@@ -26,7 +28,15 @@ public class IntegerGraphTest {
         adjacency.put(4, new Set<>(Arrays.asList(0, 1, 2, 5)));
         adjacency.put(5, new Set<>(Arrays.asList(1, 4)));
 
-        myGraph = new IntegerGraph(vertices, adjacency);
+        weights.put(0, 3);
+        weights.put(1, 2);
+        weights.put(2, 3);
+        weights.put(3,1);
+        weights.put(4,4);
+        weights.put(5,6);
+
+
+        myGraph = new IntegerGraph(vertices, weights, adjacency);
     }
 
     @Test

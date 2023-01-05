@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.LineNumberReader;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
@@ -12,47 +13,71 @@ import java.util.StringTokenizer;
 public class IntegerGraph {
 
     public Set<Integer> vertices;
+    public HashMap<Integer, Integer> weights;
     public HashMap<Integer, Set<Integer>> adjacency;
 
-    public IntegerGraph(Set<Integer> vertices, HashMap<Integer, Set<Integer>> adjacency) {
+    public IntegerGraph(Set<Integer> vertices, HashMap<Integer, Integer> weights, HashMap<Integer, Set<Integer>> adjacency) {
         this.vertices = vertices;
+        this.weights = weights;
         this.adjacency = adjacency;
     }
 
+
     /**
-     * loads graph from file containing graph information in the format from https://csacademy.com/app/graph_editor/
-     * @param fileName the file(path) containing the graph
+     * loads problem for minimum weighted vertex cover from problem sets presented in https://doi.org/10.1007/s43069-021-00084-x
+     * @return returns new IntegerGraph instance based on the given problem
      */
-    public IntegerGraph(String fileName) {
+    public static IntegerGraph fromVehicleRoutingApplication(String path) {
         try {
-            File file = new File(fileName);
-            final LineNumberReader reader = new LineNumberReader(new FileReader(file));
+            Set<Integer> vertices;
+            HashMap<Integer, Set<Integer>> adjacency;
+            HashMap<Integer, Integer> weights;
+
+            File edgeFile = new File(path+"/conflict_graph.txt");
+            final LineNumberReader reader = new LineNumberReader(new FileReader(edgeFile));
 
             // prepare vertex set and adjacency map
-            int vertexCount = Integer.parseInt(reader.readLine());
+            StringTokenizer tokens = new StringTokenizer(reader.readLine());
+            Integer vertexCount = Integer.parseInt(tokens.nextToken());
+            Integer edgeCount = Integer.parseInt(tokens.nextToken());
             vertices = new Set<>(vertexCount*2);
-            adjacency = new HashMap<>(vertexCount*2);
+            weights = new HashMap<>(vertexCount*2);
+            adjacency = new HashMap<>(edgeCount*2);
 
-            for (int v = 1; v <= vertexCount; v++) {
-                vertices.add(v);
-                adjacency.put(v,new Set<>());
-            }
 
             // populate graph with edges
             String str;
+            Integer a,b;
             while ((str = reader.readLine()) != null) {
-                StringTokenizer tokens = new StringTokenizer(str);
-                Integer a = Integer.parseInt(tokens.nextToken());
-                Integer b = Integer.parseInt(tokens.nextToken());
+                tokens = new StringTokenizer(str);
+                a = Integer.parseInt(tokens.nextToken());
+                b = Integer.parseInt(tokens.nextToken());
 
                 adjacency.get(a).add(b);
                 adjacency.get(b).add(a);
             }
 
+            File vertexFile = new File(path+"/conflict_graph.txt");
+            final LineNumberReader vertexReader = new LineNumberReader(new FileReader(vertexFile));
+            // add weights and vertices
+            while ((str = reader.readLine()) != null) {
+                tokens = new StringTokenizer(str);
+                a = Integer.parseInt(tokens.nextToken());
+                b = Integer.parseInt(tokens.nextToken());
+
+                vertices.add(a);
+                weights.put(a,b);
+            }
+
+
+            return new IntegerGraph(vertices, weights, adjacency);
+
         } catch (IOException e) {
-            System.out.println("Could not locate input file '"+fileName+"'.");
+            System.out.println("Required files could not be read.");
             System.exit(0);
         }
+
+        return null;
     }
 
     /**
