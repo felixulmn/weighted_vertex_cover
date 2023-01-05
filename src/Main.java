@@ -18,6 +18,8 @@ public class Main {
             System.exit(1);
         }
 
+        /*
+
         Set<Integer> initialCover = (Set<Integer>) myGraph.vertices.clone();
         System.out.println("Initial solution");
         System.out.println(String.format("Is cover: %s",myGraph.isVertexCover(initialCover)));
@@ -32,6 +34,8 @@ public class Main {
         System.out.println("Took " + ((System.currentTimeMillis()-start)/1000.0) +  " seconds to calculate minimum vertex cover.");
         System.out.println(String.format("Is cover: %s",myGraph.isVertexCover(minCover)));
         System.out.println(String.format("Size: %d", minCover.size()));
+
+        */
 
     }
 }

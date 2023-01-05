@@ -33,6 +33,8 @@ public class IntegerGraph {
             HashMap<Integer, Set<Integer>> adjacency;
             HashMap<Integer, Integer> weights;
 
+            String str;
+
             File edgeFile = new File(path+"/conflict_graph.txt");
             final LineNumberReader reader = new LineNumberReader(new FileReader(edgeFile));
 
@@ -44,29 +46,31 @@ public class IntegerGraph {
             weights = new HashMap<>(vertexCount*2);
             adjacency = new HashMap<>(edgeCount*2);
 
+            // add weights and vertices
+            File vertexFile = new File(path+"/node_weights.txt");
+            final LineNumberReader vertexReader = new LineNumberReader(new FileReader(vertexFile));
+            Integer vertex, weight;
+            StringTokenizer vertexTokens;
+            while ((str = vertexReader.readLine()) != null) {
+                vertexTokens = new StringTokenizer(str);
+                vertex = Integer.parseInt(vertexTokens.nextToken());
+                weight = Integer.parseInt(vertexTokens.nextToken());
+
+                vertices.add(vertex);
+                adjacency.put(vertex, new Set<>());
+                weights.put(vertex,weight);
+            }
 
             // populate graph with edges
-            String str;
             Integer a,b;
             while ((str = reader.readLine()) != null) {
                 tokens = new StringTokenizer(str);
                 a = Integer.parseInt(tokens.nextToken());
                 b = Integer.parseInt(tokens.nextToken());
 
+                System.out.println(a + "  " + b);
                 adjacency.get(a).add(b);
                 adjacency.get(b).add(a);
-            }
-
-            File vertexFile = new File(path+"/conflict_graph.txt");
-            final LineNumberReader vertexReader = new LineNumberReader(new FileReader(vertexFile));
-            // add weights and vertices
-            while ((str = reader.readLine()) != null) {
-                tokens = new StringTokenizer(str);
-                a = Integer.parseInt(tokens.nextToken());
-                b = Integer.parseInt(tokens.nextToken());
-
-                vertices.add(a);
-                weights.put(a,b);
             }
 
 
