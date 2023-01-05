@@ -139,6 +139,20 @@ public class IntegerGraph {
         return copy;
     }
 
+    /**
+     * Calculates the total weight of all vertices in the set.
+     * @param vertexSet the set of vertices to calculate the weight of
+     * @return returns the sum of all of the vertices weights in the set.
+     */
+    public long getSetWeight(Set<Integer> vertexSet) {
+        long totalWeight = 0;
+        for(Integer vertex : vertexSet) {
+            totalWeight += weights.get(vertex);
+        }
+
+        return totalWeight;
+    }
+
     public Set<Integer> mvc_localsearch(Set<Integer> cover, int kMax) {
         Set<Integer> S;
         Stack<Integer> P = new Stack();

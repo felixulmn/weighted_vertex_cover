@@ -71,4 +71,10 @@ public class IntegerGraphTest {
         adjacency.get(2).add(1);
         assertNotEquals(adjacency, copy);
     }
+
+    @Test
+    public void getSetWeight() {
+        assertEquals(19,myGraph.getSetWeight(myGraph.vertices));
+        assertEquals(14,myGraph.getSetWeight(new Set<>(Arrays.asList(2,0,5,1))));
+    }
 }
