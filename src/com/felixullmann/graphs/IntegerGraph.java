@@ -83,20 +83,18 @@ public class IntegerGraph {
     /**
      * Calculates the set of vertices adjacent to a given vertex
      * @param vertex the vertex to find the neighbors of
-     * @param adjacency the matrix containing all adjacencies of the underlying graph
      * @return set of integers representing the neighbors
      */
-    public Set<Integer> getNeighbors(Integer vertex, HashMap<Integer,Set<Integer>> adjacency) {
+    public Set<Integer> getNeighbors(Integer vertex) {
         return (Set<Integer>) adjacency.get(vertex).clone();
     }
 
     /**
      * Determines if a given vertex set from a graph is independent
      * @param vertexSet the set of vertices to be tested for independence
-     * @param adjacency the matrix containing all adjacencies of the underlying graph
      * @return true when vertexSet is independent, false otherwise
      */
-    public boolean isIndependent(Set<Integer> vertexSet, HashMap<Integer,Set<Integer>> adjacency) {
+    public boolean isIndependent(Set<Integer> vertexSet) {
         for(Integer v : vertexSet) {
             for(Integer n_v : adjacency.get(v)) {
                 if(vertexSet.contains(n_v))
@@ -149,15 +147,15 @@ public class IntegerGraph {
 
         for(int k = 1; k <= kMax; k+=2) {
             for(Integer vertex : cover) {
-                S = getNeighbors(vertex, adjacency).minus(cover);
+                S = getNeighbors(vertex).minus(cover);
                 S.add(vertex);
-                P.addAll(getNeighbors(vertex, adjacency).minus(cover));
+                P.addAll(getNeighbors(vertex).minus(cover));
                 if(k != 1 && P.isEmpty()) // TODO this is not validated but used to avoid EmptyStackException
                     continue;
                 if(k != 1)
                     p = P.pop();
-                F = getNeighbors(vertex,adjacency).intersect(cover);
-                S = enumerate(k, cover, adjacency, S, p, P, F);
+                F = getNeighbors(vertex).intersect(cover);
+                S = enumerate(k, cover, S, p, P, F);
                 if(S.size() != 0) {
                     cover = cover.minus(S).union(S.minus(cover));
                     break;
@@ -169,16 +167,16 @@ public class IntegerGraph {
         return cover;
     }
 
-    public Set<Integer> enumerate(int k, Set<Integer> cover, HashMap<Integer, Set<Integer>> adjacency, Set<Integer> S, Integer p, Stack<Integer> P, Set<Integer> F) {
+    public Set<Integer> enumerate(int k, Set<Integer> cover, Set<Integer> S, Integer p, Stack<Integer> P, Set<Integer> F) {
         Set<Integer> s_intersect_c = S.intersect(cover);
-        if(s_intersect_c.size() > Math.ceil((k+1)/2) || S.minus(cover).size() > k/2 || !isIndependent(s_intersect_c, adjacency))
+        if(s_intersect_c.size() > Math.ceil((k+1)/2) || S.minus(cover).size() > k/2 || !isIndependent(s_intersect_c))
             return new Set<>();
 
         if(S.size() == k)
             return S;
 
-        for(Integer b : getNeighbors(p, adjacency).minus(S.union(F))) {
-            Set<Integer> nb = getNeighbors(b, adjacency);
+        for(Integer b : getNeighbors(p).minus(S.union(F))) {
+            Set<Integer> nb = getNeighbors(b);
             if(nb.intersect(F.minus(cover)).size() == 0) {
                 nb = nb.minus(S.union(cover));
                 Stack<Integer> PP = (Stack<Integer>) P.clone();
@@ -189,7 +187,7 @@ public class IntegerGraph {
                 Set<Integer> SS = S.union(nb);
                 SS.add(b);
 
-                Set<Integer> result = enumerate(k,cover,adjacency,SS,pp, PP, F);
+                Set<Integer> result = enumerate(k,cover,SS,pp, PP, F);
                 if(result.size() != 0)
                     return result;
             }
@@ -200,6 +198,6 @@ public class IntegerGraph {
         if(P.isEmpty()) // TODO this is not validated but used to avoid EmptyStackException
             return new Set<>();
         Integer pp = P.pop();
-        return enumerate(k, cover, adjacency, S, pp, P, F);
+        return enumerate(k, cover, S, pp, P, F);
     }
 }

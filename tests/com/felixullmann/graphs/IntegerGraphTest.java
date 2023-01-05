@@ -44,16 +44,16 @@ public class IntegerGraphTest {
         Set<Integer> independent = new Set<>(Arrays.asList(0,1,3));
         Set<Integer> notIndependent = new Set<>(Arrays.asList(0,1,2));
 
-        assertFalse(myGraph.isIndependent(vertices, adjacency));
-        assertFalse(myGraph.isIndependent(notIndependent, adjacency));
-        assertTrue(myGraph.isIndependent(independent, adjacency));
+        assertFalse(myGraph.isIndependent(vertices));
+        assertFalse(myGraph.isIndependent(notIndependent));
+        assertTrue(myGraph.isIndependent(independent));
     }
 
     @Test
     public void getNeighbors() {
-        assertEquals(new Set<>(Arrays.asList(2)), myGraph.getNeighbors(3, adjacency));
-        assertEquals(new Set<>(Arrays.asList(2,0,5,1)), myGraph.getNeighbors(4, adjacency));
-        assertEquals(new Set<>(Arrays.asList(5,4)), myGraph.getNeighbors(1, adjacency));
+        assertEquals(new Set<>(Arrays.asList(2)), myGraph.getNeighbors(3));
+        assertEquals(new Set<>(Arrays.asList(2,0,5,1)), myGraph.getNeighbors(4));
+        assertEquals(new Set<>(Arrays.asList(5,4)), myGraph.getNeighbors(1));
     }
 
     @Test
