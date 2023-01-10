@@ -185,6 +185,7 @@ public class IntegerGraph {
     }
 
     public Set<Integer> enumerate(int k, Set<Integer> cover, Set<Integer> S, Integer p, Stack<Integer> P, Set<Integer> F) {
+        /*
         Set<Integer> s_intersect_c = S.intersect(cover);
 
         if(getSetWeight(S) > k || !isIndependent(s_intersect_c))
@@ -192,6 +193,19 @@ public class IntegerGraph {
 
         if(getSetWeight(s_intersect_c) - getSetWeight(S.minus(cover)) > 0)
             return S;
+        */
+
+        Set<Integer> s_intersect_c = S.intersect(cover);
+
+        if(!isIndependent(s_intersect_c))
+            return new Set<>();
+
+        if(S.size() == k) {
+            if(getSetWeight(s_intersect_c) - getSetWeight(S.minus(cover)) > 0)
+                return S;
+            else
+                return new Set<>();
+        }
 
         for(Integer b : getNeighbors(p).minus(S.union(F))) {
             Set<Integer> nb = getNeighbors(b);
