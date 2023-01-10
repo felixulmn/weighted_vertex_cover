@@ -29,13 +29,14 @@ public class Main {
 
         // Calculate minimum vertex cover and measure time
         long start = System.currentTimeMillis();
-        Set<Integer> minCover = myGraph.mvc_localsearch(initialCover, 100);
+        Set<Integer> minCover = myGraph.mvc_localsearch(initialCover, myGraph.vertices.size());
 
         System.out.println("Took " + ((System.currentTimeMillis()-start)/1000.0) +  " seconds to calculate minimum vertex cover.");
         System.out.println(String.format("Is cover: %s",myGraph.isVertexCover(minCover)));
         System.out.println(String.format("Weight: %d", myGraph.getSetWeight(minCover)));
         System.out.println("Cover nodes:");
         System.out.println(minCover);
+
 
         /*
         System.out.println("Removing 8 manually");
