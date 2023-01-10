@@ -162,6 +162,10 @@ public class IntegerGraph {
         Integer p = null;
         Set<Integer> F;
 
+
+        long start = System.currentTimeMillis();
+        long current;
+
         for(int k = 1; k <= kMax; k++) {
             for(Integer vertex : cover) {
                 S = getNeighbors(vertex).minus(cover);
@@ -175,6 +179,8 @@ public class IntegerGraph {
                 S = enumerate(k, cover, S, p, P, F);
                 if(S.size() != 0) {
                     cover = cover.minus(S).union(S.minus(cover));
+                    current = (System.currentTimeMillis() - start)/1000;
+                    System.out.println(current + " " + getSetWeight(cover));
                     break;
                 }
 
