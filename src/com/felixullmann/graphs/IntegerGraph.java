@@ -167,6 +167,7 @@ public class IntegerGraph {
         long current;
 
         for(int k = 1; k <= kMax; k++) {
+           // System.out.println("k = " + k);
             for(Integer vertex : cover) {
                 S = getNeighbors(vertex).minus(cover);
                 S.add(vertex);
@@ -180,7 +181,7 @@ public class IntegerGraph {
                 if(S.size() != 0) {
                     cover = cover.minus(S).union(S.minus(cover));
                     current = (System.currentTimeMillis() - start)/1000;
-                    System.out.println(current + " " + getSetWeight(cover));
+                    System.out.println("   " + current + " " + getSetWeight(cover));
                     break;
                 }
 
@@ -203,7 +204,7 @@ public class IntegerGraph {
 
         Set<Integer> s_intersect_c = S.intersect(cover);
 
-        if(!isIndependent(s_intersect_c))
+        if(S.size() > k || !isIndependent(s_intersect_c))
             return new Set<>();
 
         if(S.size() == k) {

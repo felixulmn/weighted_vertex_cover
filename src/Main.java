@@ -1,6 +1,8 @@
 import com.felixullmann.graphs.IntegerGraph;
 import com.felixullmann.graphs.Set;
 
+import java.util.Arrays;
+
 
 /*
     USED DATASETS
@@ -21,6 +23,8 @@ public class Main {
 
 
         Set<Integer> initialCover = (Set<Integer>) myGraph.vertices.clone();
+        //initialCover = new Set<>(Arrays.asList(0, 1, 3, 4, 6, 7, 8));
+
         System.out.println("Initial solution");
         System.out.println(String.format("Is cover: %s",myGraph.isVertexCover(initialCover)));
         System.out.println(String.format("Weight: %d", myGraph.getSetWeight(initialCover)));
