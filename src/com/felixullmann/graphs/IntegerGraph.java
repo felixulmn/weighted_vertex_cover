@@ -165,9 +165,32 @@ public class IntegerGraph {
 
         long start = System.currentTimeMillis();
         long current;
+        int ks = 0;
 
         for(int k = 1; k <= kMax; k++) {
-           // System.out.println("k = " + k);
+
+
+    /*
+            if(getSetWeight(cover) ==  472537418)
+                break;
+
+
+     */
+
+
+
+
+
+
+            /*
+            if(ks != 0)
+                k = ks;
+            ks = 0;
+
+             */
+
+            System.out.println("k = " + k);
+
             for(Integer vertex : cover) {
                 S = getNeighbors(vertex).minus(cover);
                 S.add(vertex);
@@ -182,10 +205,13 @@ public class IntegerGraph {
                     cover = cover.minus(S).union(S.minus(cover));
                     current = (System.currentTimeMillis() - start)/1000;
                     System.out.println("   " + current + " " + getSetWeight(cover));
-                    break;
+                    //ks = S.size();
+                    //ks = k;
+                    //break;
                 }
 
             }
+
         }
 
         return cover;
