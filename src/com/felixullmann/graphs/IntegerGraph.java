@@ -68,7 +68,6 @@ public class IntegerGraph {
                 a = Integer.parseInt(tokens.nextToken());
                 b = Integer.parseInt(tokens.nextToken());
 
-                System.out.println(a + "  " + b);
                 adjacency.get(a).add(b);
                 adjacency.get(b).add(a);
             }
@@ -146,7 +145,7 @@ public class IntegerGraph {
     /**
      * Calculates the total weight of all vertices in the set.
      * @param vertexSet the set of vertices to calculate the weight of
-     * @return returns the sum of all of the vertices weights in the set.
+     * @return returns the sum of all the vertices' weights in the set.
      */
     public long getSetWeight(Set<Integer> vertexSet) {
         long totalWeight = 0;
@@ -163,12 +162,19 @@ public class IntegerGraph {
         Integer p = null;
         Set<Integer> F;
 
-        for(int k = 1; k <= kMax; k+=2) {
+
+        long start = System.currentTimeMillis();
+        long current;
+
+        for(int k = 1; k <= kMax; k++) {
+            System.out.println("k = " + k);
+
             for(Integer vertex : cover) {
                 S = getNeighbors(vertex).minus(cover);
                 S.add(vertex);
+                P = new Stack<>();
                 P.addAll(getNeighbors(vertex).minus(cover));
-                if(k != 1 && P.isEmpty()) // TODO this is not validated but used to avoid EmptyStackException
+                if(k != 1 && P.isEmpty())
                     continue;
                 if(k != 1)
                     p = P.pop();
@@ -176,22 +182,34 @@ public class IntegerGraph {
                 S = enumerate(k, cover, S, p, P, F);
                 if(S.size() != 0) {
                     cover = cover.minus(S).union(S.minus(cover));
+                    current = (System.currentTimeMillis() - start)/1000;
+                    System.out.println("   " + current + " " + getSetWeight(cover));
+
+                    // restart the k-loop at 1
+                    k = 0;
                     break;
                 }
 
             }
+
         }
 
         return cover;
     }
 
     public Set<Integer> enumerate(int k, Set<Integer> cover, Set<Integer> S, Integer p, Stack<Integer> P, Set<Integer> F) {
+
         Set<Integer> s_intersect_c = S.intersect(cover);
-        if(s_intersect_c.size() > Math.ceil((k+1)/2) || S.minus(cover).size() > k/2 || !isIndependent(s_intersect_c))
+
+        if(S.size() > k || !isIndependent(s_intersect_c))
             return new Set<>();
 
-        if(S.size() == k)
-            return S;
+        if(S.size() == k) {
+            if(getSetWeight(s_intersect_c) - getSetWeight(S.minus(cover)) > 0)
+                return S;
+            else
+                return new Set<>();
+        }
 
         for(Integer b : getNeighbors(p).minus(S.union(F))) {
             Set<Integer> nb = getNeighbors(b);
@@ -213,7 +231,7 @@ public class IntegerGraph {
         }
 
 
-        if(P.isEmpty()) // TODO this is not validated but used to avoid EmptyStackException
+        if(P.isEmpty())
             return new Set<>();
         Integer pp = P.pop();
         return enumerate(k, cover, S, pp, P, F);

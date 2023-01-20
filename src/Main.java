@@ -1,6 +1,8 @@
 import com.felixullmann.graphs.IntegerGraph;
 import com.felixullmann.graphs.Set;
 
+import java.util.Arrays;
+
 
 /*
     USED DATASETS
@@ -18,24 +20,22 @@ public class Main {
             System.exit(1);
         }
 
-        /*
-
         Set<Integer> initialCover = (Set<Integer>) myGraph.vertices.clone();
+
         System.out.println("Initial solution");
         System.out.println(String.format("Is cover: %s",myGraph.isVertexCover(initialCover)));
-        System.out.println(String.format("Size: %d", initialCover.size()));
+        System.out.println(String.format("Weight: %d", myGraph.getSetWeight(initialCover)));
         System.out.println();
 
 
         // Calculate minimum vertex cover and measure time
         long start = System.currentTimeMillis();
-        Set<Integer> minCover = myGraph.mvc_localsearch(initialCover, 30);
+        Set<Integer> minCover = myGraph.mvc_localsearch(initialCover, myGraph.vertices.size());
 
         System.out.println("Took " + ((System.currentTimeMillis()-start)/1000.0) +  " seconds to calculate minimum vertex cover.");
         System.out.println(String.format("Is cover: %s",myGraph.isVertexCover(minCover)));
-        System.out.println(String.format("Size: %d", minCover.size()));
-
-        */
-
+        System.out.println(String.format("Weight: %d", myGraph.getSetWeight(minCover)));
+        System.out.println("Cover nodes:");
+        System.out.println(minCover);
     }
 }
