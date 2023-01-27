@@ -178,6 +178,15 @@ public class IntegerGraph {
                     continue;
                 if(k != 1)
                     p = P.pop();
+
+/*                if(k != 1) {
+                    if(P.isEmpty())
+                        continue;
+
+                    p = P.pop();
+                }
+                */
+
                 F = getNeighbors(vertex).intersect(cover);
                 S = enumerate(k, cover, S, p, P, F);
                 if(S.size() != 0) {
@@ -213,7 +222,7 @@ public class IntegerGraph {
 
         for(Integer b : getNeighbors(p).minus(S.union(F))) {
             Set<Integer> nb = getNeighbors(b);
-            if(nb.intersect(F.minus(cover)).size() == 0) {
+            //if(nb.intersect(F.minus(cover)).size() == 0) {
                 nb = nb.minus(S.union(cover));
                 Stack<Integer> PP = (Stack<Integer>) P.clone();
                 PP.add(p);
@@ -226,7 +235,7 @@ public class IntegerGraph {
                 Set<Integer> result = enumerate(k,cover,SS,pp, PP, F);
                 if(result.size() != 0)
                     return result;
-            }
+            //}
             F.add(b);
         }
 
