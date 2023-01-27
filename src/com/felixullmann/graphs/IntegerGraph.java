@@ -16,6 +16,8 @@ public class IntegerGraph {
     public HashMap<Integer, Integer> weights;
     public HashMap<Integer, Set<Integer>> adjacency;
 
+    public Set<Integer> inCover = new Set<>();
+
     public IntegerGraph(Set<Integer> vertices, HashMap<Integer, Integer> weights, HashMap<Integer, Set<Integer>> adjacency) {
         this.vertices = vertices;
         this.weights = weights;
@@ -156,9 +158,13 @@ public class IntegerGraph {
         return totalWeight;
     }
 
-    public Set<Integer> mvc_localsearch(Set<Integer> cover, int kMax) {
+
+    public Set<Integer> mvc_localsearch(int kMax) {
+
+        Set<Integer> cover = (Set<Integer>) this.vertices.clone();
+
         Set<Integer> S;
-        Stack<Integer> P = new Stack();
+        Stack<Integer> P;
         Integer p = null;
         Set<Integer> F;
 
@@ -178,21 +184,12 @@ public class IntegerGraph {
                     continue;
                 if(k != 1)
                     p = P.pop();
-
-/*                if(k != 1) {
-                    if(P.isEmpty())
-                        continue;
-
-                    p = P.pop();
-                }
-                */
-
                 F = getNeighbors(vertex).intersect(cover);
                 S = enumerate(k, cover, S, p, P, F);
                 if(S.size() != 0) {
                     cover = cover.minus(S).union(S.minus(cover));
                     current = (System.currentTimeMillis() - start)/1000;
-                    System.out.println("   " + current + " " + getSetWeight(cover));
+                    System.out.println("   " + current + " " + (getSetWeight(cover) + getSetWeight(inCover)));
 
                     // restart the k-loop at 1
                     k = 0;
@@ -203,7 +200,7 @@ public class IntegerGraph {
 
         }
 
-        return cover;
+        return cover.union(inCover);
     }
 
     public Set<Integer> enumerate(int k, Set<Integer> cover, Set<Integer> S, Integer p, Stack<Integer> P, Set<Integer> F) {
@@ -244,5 +241,41 @@ public class IntegerGraph {
             return new Set<>();
         Integer pp = P.pop();
         return enumerate(k, cover, S, pp, P, F);
+    }
+
+    /**
+     * Removes vertices from graph that are certain to be in the solution.
+     * The rule is to add all neighbors of a vertex to the cover if their total weight is less than the weight of the vertex
+     */
+    public void preprocess() {
+        System.out.println("Preprocessing...");
+
+        Set<Integer> remove = new Set<>();
+
+        // find vertices to be pruned
+
+        for(Integer vertex : this.vertices) {
+            Set<Integer> neighbors;
+            neighbors = getNeighbors(vertex);
+            if(weights.get(vertex) >= getSetWeight(neighbors)) {
+                remove.add(vertex);
+                this.inCover.addAll(neighbors);
+            }
+        }
+
+        remove.addAll(this.inCover);
+
+        // update graph
+        this.vertices.removeAll(remove);
+
+        for(Integer vertex : remove) {
+           this.adjacency.remove(vertex);
+        }
+
+        this.adjacency.forEach((vertex, neighbors) -> {
+            adjacency.put(vertex, neighbors.minus(remove));
+        });
+
+        System.out.println("Pruned " + remove.size() + " vertices from graph and added " + inCover.size() + " vertices to cover.");
     }
 }
