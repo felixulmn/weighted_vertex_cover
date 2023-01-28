@@ -4,19 +4,20 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.LineNumberReader;
-import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Stack;
-import java.util.StringTokenizer;
+import java.util.*;
 
 public class IntegerGraph {
 
     public Set<Integer> vertices;
     public HashMap<Integer, Integer> weights;
     public HashMap<Integer, Set<Integer>> adjacency;
-
     public Set<Integer> inCover = new Set<>();
+
+    // comparators for finding greedy solution
+    public Comparator<Integer> maxDegreeComparator = (Integer v1, Integer v2) -> Integer.compare(adjacency.get(v2).size(), adjacency.get(v1).size());
+    public Comparator<Integer> neighborWeightRatioComparator = (Integer v1, Integer v2) -> Float.compare((float) getSetWeight(getNeighbors(v2))/weights.get(v2), (float) getSetWeight(getNeighbors(v1))/weights.get(v1));
+
+    public Comparator<Integer> neighborWeightDifferenceComparator = (Integer v1, Integer v2) -> Long.compare(getSetWeight(getNeighbors(v2)) - weights.get(v2), getSetWeight(getNeighbors(v1)) - weights.get(v1));
 
     public IntegerGraph(Set<Integer> vertices, HashMap<Integer, Integer> weights, HashMap<Integer, Set<Integer>> adjacency) {
         this.vertices = vertices;
@@ -159,9 +160,7 @@ public class IntegerGraph {
     }
 
 
-    public Set<Integer> mvc_localsearch(int kMax) {
-
-        Set<Integer> cover = (Set<Integer>) this.vertices.clone();
+    public Set<Integer> mvc_localsearch(Set<Integer> cover, int kMax) {
 
         Set<Integer> S;
         Stack<Integer> P;
@@ -277,5 +276,33 @@ public class IntegerGraph {
         });
 
         System.out.println("Pruned " + remove.size() + " vertices from graph and added " + inCover.size() + " vertices to cover.");
+    }
+
+    /**
+     * Calculates a greedy solution that can be used as the initial cover to the local search algorithm.
+     * @param vertices The potential vertices to be in the cover.
+     * @param comparator The comparator that defines the order for greedily adding vertices to the cover.
+     * @return Returns a vertex cover.
+     */
+    public Set<Integer> getGreedyCover(Set<Integer> vertices, Comparator<Integer> comparator) {
+        Set<Integer> cover = new Set<>();
+        PriorityQueue<Integer> vertexQueue = new PriorityQueue<>(vertices.size(), comparator);
+        vertexQueue.addAll(vertices);
+        HashMap<Integer, Set<Integer>> adjacencyCopy = this.getAdjacencyCopy();
+
+        System.out.println(vertexQueue.size());
+
+        while(adjacencyCopy.size() != 0) {
+            Integer v = vertexQueue.poll();
+            cover.add(v);
+
+            adjacencyCopy.entrySet().removeIf(entry -> {
+                HashSet<Integer> neighbors = entry.getValue();
+                neighbors.remove(v);
+                return entry.getKey() == v || neighbors.size() == 0;
+            });
+        }
+
+        return cover;
     }
 }
