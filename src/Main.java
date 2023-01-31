@@ -25,7 +25,7 @@ public class Main {
 
         System.out.println("Initial solution");
         System.out.println(String.format("Is cover: %s",myGraph.isVertexCover(initialCover)));
-        System.out.println(String.format("Weight: %d", myGraph.getSetWeight(initialCover)));
+        System.out.println(String.format("Weight: %d", myGraph.getSetWeight(initialCover)+myGraph.getSetWeight(myGraph.inCover)));
         System.out.println();
 
         Set<Integer> greedyCover = myGraph.getGreedyCover(initialCover, myGraph.neighborWeightDifferenceComparator);
