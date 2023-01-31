@@ -20,7 +20,7 @@ public class Main {
             System.exit(1);
         }
 
-        //myGraph.preprocess();
+        myGraph.preprocess();
         Set<Integer> initialCover = (Set<Integer>) myGraph.vertices.clone();
 
         System.out.println("Initial solution");
@@ -31,16 +31,16 @@ public class Main {
         Set<Integer> greedyCover = myGraph.getGreedyCover(initialCover, myGraph.neighborWeightDifferenceComparator);
         System.out.println("Greedy solution");
         System.out.println(String.format("Is cover: %s",myGraph.isVertexCover(greedyCover)));
-        System.out.println(String.format("Weight: %d", myGraph.getSetWeight(greedyCover)));
+        System.out.println(String.format("Weight: %d", myGraph.getSetWeight(greedyCover)+myGraph.getSetWeight(myGraph.inCover)));
         System.out.println();
 
 
 
         // Calculate minimum vertex cover and measure time
         long start = System.currentTimeMillis();
-        Set<Integer> minCover = myGraph.mvc_localsearch(initialCover, myGraph.vertices.size());
+        Set<Integer> minCover = myGraph.mvc_localsearch(greedyCover, myGraph.vertices.size());
 
-        System.out.println("Took " + ((System.currentTimeMillis()-start)/1000.0) +  " seconds to calculate minimum vertex cover.");
+        System.out.println("\nTook " + ((System.currentTimeMillis()-start)/1000.0) +  " seconds to calculate minimum vertex cover.");
         System.out.println(String.format("Is cover: %s",myGraph.isVertexCover(minCover)));
         System.out.println(String.format("Weight: %d", myGraph.getSetWeight(minCover)));
         System.out.println("Cover nodes:");

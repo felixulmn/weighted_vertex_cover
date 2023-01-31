@@ -172,7 +172,8 @@ public class IntegerGraph {
         long current;
 
         for(int k = 1; k <= kMax; k++) {
-            System.out.println("k = " + k);
+            current = (System.currentTimeMillis() - start)/1000;
+            System.out.println(String.format("%5s k = %s", current, k));
 
             for(Integer vertex : cover) {
                 S = getNeighbors(vertex).minus(cover);
@@ -188,8 +189,8 @@ public class IntegerGraph {
                 if(S.size() != 0) {
                     cover = cover.minus(S).union(S.minus(cover));
                     current = (System.currentTimeMillis() - start)/1000;
-                    System.out.println("   " + current + " " + (getSetWeight(cover) + getSetWeight(inCover)));
-
+                    //System.out.println("   " + current + " " + (getSetWeight(cover) + getSetWeight(inCover)));
+                    System.out.println(String.format("%5s    w = %s", current, (getSetWeight(cover) + getSetWeight(inCover))));
                     // restart the k-loop at 1
                     k = 0;
                     break;
@@ -275,7 +276,7 @@ public class IntegerGraph {
             adjacency.put(vertex, neighbors.minus(remove));
         });
 
-        System.out.println("Pruned " + remove.size() + " vertices from graph and added " + inCover.size() + " vertices to cover.");
+        System.out.println("Pruned " + remove.size() + " vertices from graph and added " + inCover.size() + " vertices to cover.\n");
     }
 
     /**
@@ -289,8 +290,6 @@ public class IntegerGraph {
         PriorityQueue<Integer> vertexQueue = new PriorityQueue<>(vertices.size(), comparator);
         vertexQueue.addAll(vertices);
         HashMap<Integer, Set<Integer>> adjacencyCopy = this.getAdjacencyCopy();
-
-        System.out.println(vertexQueue.size());
 
         while(adjacencyCopy.size() != 0) {
             Integer v = vertexQueue.poll();
