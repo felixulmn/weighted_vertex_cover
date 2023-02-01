@@ -249,43 +249,42 @@ public class IntegerGraph {
      */
     public void preprocess() {
         System.out.println("Preprocessing...");
+        int totalRemoved = preprocessRecursive(1,0);
+        System.out.println("Pruned " + totalRemoved + " vertices from graph and added " + inCover.size() + " vertices to cover.\n");
+    }
 
-        int removed;
-        int removedTotal = 0;
+    private int preprocessRecursive(int removed, int totalRemoved) {
+        if(removed == 0)
+            return totalRemoved;
 
-        do {
-            removed = 0;
 
-            Set<Integer> remove = new Set<>();
-            // find vertices to be pruned
+        Set<Integer> remove = new Set<>();
+        // find vertices to be pruned
 
-            for (Integer vertex : this.vertices) {
-                Set<Integer> neighbors;
-                neighbors = getNeighbors(vertex);
-                if (weights.get(vertex) >= getSetWeight(neighbors)) {
-                    remove.add(vertex);
-                    this.inCover.addAll(neighbors);
-                }
+        for (Integer vertex : this.vertices) {
+            Set<Integer> neighbors;
+            neighbors = getNeighbors(vertex);
+            if (weights.get(vertex) >= getSetWeight(neighbors)) {
+                remove.add(vertex);
+                this.inCover.addAll(neighbors);
             }
-            removed += remove.size();
+        }
+        removed = remove.size();
 
-            // update graph
-            remove.addAll(this.inCover);
+        // update graph
+        remove.addAll(this.inCover);
 
-            this.vertices.removeAll(remove);
+        this.vertices.removeAll(remove);
 
-            for (Integer vertex : remove) {
-                this.adjacency.remove(vertex);
-            }
+        for (Integer vertex : remove) {
+            this.adjacency.remove(vertex);
+        }
 
-            this.adjacency.forEach((vertex, neighbors) -> {
-                adjacency.put(vertex, neighbors.minus(remove));
-            });
+        this.adjacency.forEach((vertex, neighbors) -> {
+            adjacency.put(vertex, neighbors.minus(remove));
+        });
 
-            removedTotal += remove.size();
-        } while(removed > 0);
-
-        System.out.println("Pruned " + removedTotal + " vertices from graph and added " + inCover.size() + " vertices to cover.\n");
+        return preprocessRecursive(removed, totalRemoved+remove.size());
     }
 
     /**
