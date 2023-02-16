@@ -316,4 +316,38 @@ public class IntegerGraph {
 
         return cover;
     }
+
+    /**
+     * Get all subgraphs induced by vertices
+     * @param vertices
+     * @return returns a set of vertex sets that represent disconnected subgraphs induced by vertices
+     */
+    public Set<Set<Integer>> getDisconnectedSubgraphs(Set<Integer> vertices) {
+        Stack<Integer> remaining = new Stack<>();
+        remaining.addAll((Set<Integer>) this.vertices.clone());
+        Stack<Integer> frontier = new Stack<>();
+
+        Set<Set<Integer>> subgraphs = new Set<>();
+        Set<Integer> current = new Set<>();
+
+        while(!remaining.isEmpty()) {
+            frontier.add(remaining.pop());
+
+            while(!frontier.isEmpty()) {
+                Integer v = frontier.pop();
+                current.add(v);
+                frontier.addAll(this.adjacency.get(v).minus(current));
+                current.addAll(this.adjacency.get(v));
+            }
+
+            subgraphs.add(current);
+            remaining.removeAll(current);
+            System.out.println("Subset of size " + current.size() +  " found. " + remaining.size() + " vertices remaining.");
+
+            current = new Set<>();
+
+        }
+
+        return subgraphs;
+    }
 }
