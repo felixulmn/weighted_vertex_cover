@@ -322,29 +322,40 @@ public class IntegerGraph {
      * @param vertices
      * @return returns a set of vertex sets that represent disconnected subgraphs induced by vertices
      */
-    public Set<Set<Integer>> getDisconnectedSubgraphs(Set<Integer> vertices) {
+    public TreeSet<IntegerGraph> getDisconnectedSubgraphs(Set<Integer> vertices) {
+        Stack<Integer> frontier = new Stack<>();
         Stack<Integer> remaining = new Stack<>();
         remaining.addAll((Set<Integer>) this.vertices.clone());
-        Stack<Integer> frontier = new Stack<>();
 
-        Set<Set<Integer>> subgraphs = new Set<>();
-        Set<Integer> current = new Set<>();
+        // initialize treeset that contains all subgraphs in ascending order by vertexcount
+        TreeSet<IntegerGraph> subgraphs = new TreeSet<>(Comparator.comparingInt((IntegerGraph g) -> g.vertices.size()));
+
+        Set<Integer> currentVertices = new Set<>();
+        HashMap<Integer, Set<Integer>> currentAdjacency = new HashMap<>();
+        HashMap<Integer, Integer> currentWeights = new HashMap<>();
 
         while(!remaining.isEmpty()) {
             frontier.add(remaining.pop());
 
             while(!frontier.isEmpty()) {
                 Integer v = frontier.pop();
-                current.add(v);
-                frontier.addAll(this.adjacency.get(v).minus(current));
-                current.addAll(this.adjacency.get(v));
+                currentVertices.add(v);
+
+                currentAdjacency.put(v, this.adjacency.get(v));
+                currentWeights.put(v, this.weights.get(v));
+
+                frontier.addAll(this.adjacency.get(v).minus(currentVertices));
+                currentVertices.addAll(this.adjacency.get(v));
             }
 
-            subgraphs.add(current);
-            remaining.removeAll(current);
-            System.out.println("Subset of size " + current.size() +  " found. " + remaining.size() + " vertices remaining.");
 
-            current = new Set<>();
+            subgraphs.add(new IntegerGraph(currentVertices, currentWeights, currentAdjacency));
+            remaining.removeAll(currentVertices);
+            System.out.println("Subset of size " + currentVertices.size() +  " found. " + remaining.size() + " vertices remaining.");
+
+            currentVertices = new Set<>();
+            currentAdjacency = new HashMap<>();
+            currentWeights = new HashMap<>();
 
         }
 

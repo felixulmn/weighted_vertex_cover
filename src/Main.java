@@ -2,6 +2,7 @@ import com.felixullmann.graphs.IntegerGraph;
 import com.felixullmann.graphs.Set;
 
 import java.util.Arrays;
+import java.util.TreeSet;
 
 
 /*
@@ -49,36 +50,15 @@ public class Main {
 
 
         long start = System.currentTimeMillis();
-        Set<Set<Integer>> subgraphs = myGraph.getDisconnectedSubgraphs(myGraph.vertices);
+        TreeSet<IntegerGraph> subgraphs = myGraph.getDisconnectedSubgraphs(myGraph.vertices);
         System.out.println("Took " + ((System.currentTimeMillis()-start)/1000) + " seconds to compute subsets");
 
         System.out.println("Number of disconnected subgraphs: " + subgraphs.size());
 
-        //subgraphs.forEach(subraph -> System.out.println(subraph));
-
-
-        Set<Integer> union = new Set<>();
-
-        for(Set<Integer> subgraph : subgraphs) {
-            union = union.union(subgraph);
+        for(IntegerGraph subgraph : subgraphs) {
+            System.out.println(subgraph.vertices.size());
         }
 
-        boolean noIntersection = true;
-        outer: for(Set<Integer> subgraph : subgraphs) {
-            for(Set<Integer> sg : subgraphs) {
-
-                if(subgraph.equals(sg))
-                    continue;
-
-                if(subgraph.intersect(sg).size() > 0) {
-                    noIntersection = false;
-                    break outer;
-                }
-            }
-        }
-
-        System.out.println("Subgraphs form complete vertex set: " + union.equals(myGraph.vertices));
-        System.out.println("Subgraphs have no intersections:    " + noIntersection);
 
 
         // Calculate minimum vertex cover and measure time
