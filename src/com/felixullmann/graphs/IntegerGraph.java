@@ -4,17 +4,19 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.LineNumberReader;
-import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Stack;
-import java.util.StringTokenizer;
+import java.util.*;
 
 public class IntegerGraph {
 
     public Set<Integer> vertices;
     public HashMap<Integer, Integer> weights;
     public HashMap<Integer, Set<Integer>> adjacency;
+    public Set<Integer> initialSolution = null;         // may be used to save greedy solutions
+
+    // comparators for finding greedy solution
+    public Comparator<Integer> maxDegreeComparator = (Integer v1, Integer v2) -> Integer.compare(adjacency.get(v2).size(), adjacency.get(v1).size());
+    public Comparator<Integer> neighborWeightRatioComparator = (Integer v1, Integer v2) -> Float.compare((float) getSetWeight(getNeighbors(v2))/weights.get(v2), (float) getSetWeight(getNeighbors(v1))/weights.get(v1));
+    public Comparator<Integer> neighborWeightDifferenceComparator = (Integer v1, Integer v2) -> Long.compare(getSetWeight(getNeighbors(v2)) - weights.get(v2), getSetWeight(getNeighbors(v1)) - weights.get(v1));
 
     public IntegerGraph(Set<Integer> vertices, HashMap<Integer, Integer> weights, HashMap<Integer, Set<Integer>> adjacency) {
         this.vertices = vertices;
@@ -156,9 +158,11 @@ public class IntegerGraph {
         return totalWeight;
     }
 
-    public Set<Integer> mvc_localsearch(Set<Integer> cover, int kMax) {
+
+    public Set<Integer> mvc_localsearch(Set<Integer> cover, int kMax, long totalWeight) {
+
         Set<Integer> S;
-        Stack<Integer> P = new Stack();
+        Stack<Integer> P;
         Integer p = null;
         Set<Integer> F;
 
@@ -167,7 +171,8 @@ public class IntegerGraph {
         long current;
 
         for(int k = 1; k <= kMax; k++) {
-            System.out.println("k = " + k);
+            current = (System.currentTimeMillis() - start)/1000;
+            System.out.println(String.format("%5s k = %s", current, k));
 
             for(Integer vertex : cover) {
                 S = getNeighbors(vertex).minus(cover);
@@ -178,22 +183,12 @@ public class IntegerGraph {
                     continue;
                 if(k != 1)
                     p = P.pop();
-
-/*                if(k != 1) {
-                    if(P.isEmpty())
-                        continue;
-
-                    p = P.pop();
-                }
-                */
-
                 F = getNeighbors(vertex).intersect(cover);
                 S = enumerate(k, cover, S, p, P, F);
                 if(S.size() != 0) {
                     cover = cover.minus(S).union(S.minus(cover));
                     current = (System.currentTimeMillis() - start)/1000;
-                    System.out.println("   " + current + " " + getSetWeight(cover));
-
+                    System.out.println(String.format("%5s    w = %s", current, (getSetWeight(cover) + totalWeight)));
                     // restart the k-loop at 1
                     k = 0;
                     break;
@@ -244,5 +239,124 @@ public class IntegerGraph {
             return new Set<>();
         Integer pp = P.pop();
         return enumerate(k, cover, S, pp, P, F);
+    }
+
+    /**
+     * Removes vertices from graph that are certain to be in the solution.
+     * The rule is to add all neighbors of a vertex to the cover if their total weight is less than the weight of the vertex
+     */
+    public Set<Integer> preprocess() {
+        System.out.println("Preprocessing...");
+        return preprocessRecursive(1,0, new Set<Integer>());
+    }
+
+    private Set<Integer> preprocessRecursive(int removed, int totalRemoved, Set<Integer> inCover) {
+        if(removed == 0) {
+            System.out.println("Pruned " + totalRemoved + " vertices from graph and added " + inCover.size() + " vertices to cover.\n");
+            return inCover;
+        }
+
+
+
+        Set<Integer> remove = new Set<>();
+        // find vertices to be pruned
+
+        for (Integer vertex : this.vertices) {
+            Set<Integer> neighbors;
+            neighbors = getNeighbors(vertex);
+            if (weights.get(vertex) >= getSetWeight(neighbors)) {
+                remove.add(vertex);
+                inCover.addAll(neighbors);
+            }
+        }
+        removed = remove.size();
+
+        // update graph
+        remove.addAll(inCover);
+
+        this.vertices.removeAll(remove);
+
+        for (Integer vertex : remove) {
+            this.adjacency.remove(vertex);
+        }
+
+        this.adjacency.forEach((vertex, neighbors) -> {
+            adjacency.put(vertex, neighbors.minus(remove));
+        });
+
+        return preprocessRecursive(removed, totalRemoved+remove.size(), inCover);
+    }
+
+    /**
+     * Calculates a greedy solution that can be used as the initial cover to the local search algorithm.
+     * @param vertices The potential vertices to be in the cover.
+     * @param comparator The comparator that defines the order for greedily adding vertices to the cover.
+     * @return Returns a vertex cover.
+     */
+    public Set<Integer> getGreedyCover(Set<Integer> vertices, Comparator<Integer> comparator) {
+        Set<Integer> cover = new Set<>();
+
+        if(vertices.size() == 0)
+                return cover;
+
+        PriorityQueue<Integer> vertexQueue = new PriorityQueue<>(vertices.size(), comparator);
+        vertexQueue.addAll(vertices);
+        HashMap<Integer, Set<Integer>> adjacencyCopy = this.getAdjacencyCopy();
+
+        while(adjacencyCopy.size() != 0) {
+            Integer v = vertexQueue.poll();
+            cover.add(v);
+
+            adjacencyCopy.entrySet().removeIf(entry -> {
+                HashSet<Integer> neighbors = entry.getValue();
+                neighbors.remove(v);
+                return entry.getKey() == v || neighbors.size() == 0;
+            });
+        }
+
+        return cover;
+    }
+
+    /**
+     * Get all subgraphs induced by vertices
+     * @param vertices
+     * @return returns a set of vertex sets that represent disconnected subgraphs induced by vertices
+     */
+    public Set<IntegerGraph> getDisconnectedSubgraphs(Set<Integer> vertices) {
+        Stack<Integer> frontier = new Stack<>();
+        Stack<Integer> remaining = new Stack<>();
+        remaining.addAll((Set<Integer>) this.vertices.clone());
+
+        Set<IntegerGraph> subgraphs = new Set<>();
+
+        Set<Integer> currentVertices = new Set<>();
+        HashMap<Integer, Set<Integer>> currentAdjacency = new HashMap<>();
+        HashMap<Integer, Integer> currentWeights = new HashMap<>();
+
+        while(!remaining.isEmpty()) {
+            frontier.add(remaining.pop());
+
+            while(!frontier.isEmpty()) {
+                Integer v = frontier.pop();
+                currentVertices.add(v);
+
+                currentAdjacency.put(v, this.adjacency.get(v));
+                currentWeights.put(v, this.weights.get(v));
+
+                frontier.addAll(this.adjacency.get(v).minus(currentVertices));
+                currentVertices.addAll(this.adjacency.get(v));
+            }
+
+            subgraphs.add(new IntegerGraph(currentVertices, currentWeights, currentAdjacency));
+            remaining.removeAll(currentVertices);
+            //System.out.println("Subset of size " + currentVertices.size() +  " found. " + remaining.size() + " vertices remaining.");
+
+            currentVertices = new Set<>();
+            currentAdjacency = new HashMap<>();
+            currentWeights = new HashMap<>();
+
+        }
+
+        return subgraphs;
     }
 }
