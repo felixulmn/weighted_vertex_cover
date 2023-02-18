@@ -11,18 +11,19 @@ public class IntegerGraph {
     public Set<Integer> vertices;
     public HashMap<Integer, Integer> weights;
     public HashMap<Integer, Set<Integer>> adjacency;
-    public Set<Integer> inCover = new Set<>();
+    public Set<Integer> initialCover;                           // initial cover that can be use for running local search
+    public Set<Integer> inCover = new Set<>();                  // vertices guaranteed to be in the MWVC
 
     // comparators for finding greedy solution
     public Comparator<Integer> maxDegreeComparator = (Integer v1, Integer v2) -> Integer.compare(adjacency.get(v2).size(), adjacency.get(v1).size());
     public Comparator<Integer> neighborWeightRatioComparator = (Integer v1, Integer v2) -> Float.compare((float) getSetWeight(getNeighbors(v2))/weights.get(v2), (float) getSetWeight(getNeighbors(v1))/weights.get(v1));
-
     public Comparator<Integer> neighborWeightDifferenceComparator = (Integer v1, Integer v2) -> Long.compare(getSetWeight(getNeighbors(v2)) - weights.get(v2), getSetWeight(getNeighbors(v1)) - weights.get(v1));
 
     public IntegerGraph(Set<Integer> vertices, HashMap<Integer, Integer> weights, HashMap<Integer, Set<Integer>> adjacency) {
         this.vertices = vertices;
         this.weights = weights;
         this.adjacency = adjacency;
+        this.initialCover = vertices;
     }
 
 
@@ -160,7 +161,7 @@ public class IntegerGraph {
     }
 
 
-    public Set<Integer> mvc_localsearch(Set<Integer> cover, int kMax) {
+    public Set<Integer> mvc_localsearch(Set<Integer> cover, int kMax, long totalWeight) {
 
         Set<Integer> S;
         Stack<Integer> P;
@@ -173,7 +174,7 @@ public class IntegerGraph {
 
         for(int k = 1; k <= kMax; k++) {
             current = (System.currentTimeMillis() - start)/1000;
-            System.out.println(String.format("%5s k = %s", current, k));
+            //System.out.println(String.format("%5s k = %s", current, k));
 
             for(Integer vertex : cover) {
                 S = getNeighbors(vertex).minus(cover);
@@ -189,8 +190,7 @@ public class IntegerGraph {
                 if(S.size() != 0) {
                     cover = cover.minus(S).union(S.minus(cover));
                     current = (System.currentTimeMillis() - start)/1000;
-                    //System.out.println("   " + current + " " + (getSetWeight(cover) + getSetWeight(inCover)));
-                    System.out.println(String.format("%5s    w = %s", current, (getSetWeight(cover) + getSetWeight(inCover))));
+                //    System.out.println(String.format("%5s    w = %s", current, (getSetWeight(cover) + totalWeight)));
                     // restart the k-loop at 1
                     k = 0;
                     break;
@@ -322,13 +322,12 @@ public class IntegerGraph {
      * @param vertices
      * @return returns a set of vertex sets that represent disconnected subgraphs induced by vertices
      */
-    public TreeSet<IntegerGraph> getDisconnectedSubgraphs(Set<Integer> vertices) {
+    public Set<IntegerGraph> getDisconnectedSubgraphs(Set<Integer> vertices) {
         Stack<Integer> frontier = new Stack<>();
         Stack<Integer> remaining = new Stack<>();
         remaining.addAll((Set<Integer>) this.vertices.clone());
 
-        // initialize treeset that contains all subgraphs in ascending order by vertexcount
-        TreeSet<IntegerGraph> subgraphs = new TreeSet<>(Comparator.comparingInt((IntegerGraph g) -> g.vertices.size()));
+        Set<IntegerGraph> subgraphs = new Set<>();
 
         Set<Integer> currentVertices = new Set<>();
         HashMap<Integer, Set<Integer>> currentAdjacency = new HashMap<>();
@@ -348,10 +347,9 @@ public class IntegerGraph {
                 currentVertices.addAll(this.adjacency.get(v));
             }
 
-
             subgraphs.add(new IntegerGraph(currentVertices, currentWeights, currentAdjacency));
             remaining.removeAll(currentVertices);
-            System.out.println("Subset of size " + currentVertices.size() +  " found. " + remaining.size() + " vertices remaining.");
+            //System.out.println("Subset of size " + currentVertices.size() +  " found. " + remaining.size() + " vertices remaining.");
 
             currentVertices = new Set<>();
             currentAdjacency = new HashMap<>();
