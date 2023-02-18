@@ -11,8 +11,7 @@ public class IntegerGraph {
     public Set<Integer> vertices;
     public HashMap<Integer, Integer> weights;
     public HashMap<Integer, Set<Integer>> adjacency;
-    public Set<Integer> initialCover;                           // initial cover that can be use for running local search
-    public Set<Integer> inCover = new Set<>();                  // vertices guaranteed to be in the MWVC
+    public Set<Integer> initialSolution = null;         // may be used to save greedy solutions
 
     // comparators for finding greedy solution
     public Comparator<Integer> maxDegreeComparator = (Integer v1, Integer v2) -> Integer.compare(adjacency.get(v2).size(), adjacency.get(v1).size());
@@ -23,7 +22,6 @@ public class IntegerGraph {
         this.vertices = vertices;
         this.weights = weights;
         this.adjacency = adjacency;
-        this.initialCover = vertices;
     }
 
 
@@ -174,7 +172,7 @@ public class IntegerGraph {
 
         for(int k = 1; k <= kMax; k++) {
             current = (System.currentTimeMillis() - start)/1000;
-            //System.out.println(String.format("%5s k = %s", current, k));
+            System.out.println(String.format("%5s k = %s", current, k));
 
             for(Integer vertex : cover) {
                 S = getNeighbors(vertex).minus(cover);
@@ -190,7 +188,7 @@ public class IntegerGraph {
                 if(S.size() != 0) {
                     cover = cover.minus(S).union(S.minus(cover));
                     current = (System.currentTimeMillis() - start)/1000;
-                //    System.out.println(String.format("%5s    w = %s", current, (getSetWeight(cover) + totalWeight)));
+                    System.out.println(String.format("%5s    w = %s", current, (getSetWeight(cover) + totalWeight)));
                     // restart the k-loop at 1
                     k = 0;
                     break;
@@ -200,7 +198,7 @@ public class IntegerGraph {
 
         }
 
-        return cover.union(inCover);
+        return cover;
     }
 
     public Set<Integer> enumerate(int k, Set<Integer> cover, Set<Integer> S, Integer p, Stack<Integer> P, Set<Integer> F) {
@@ -247,15 +245,17 @@ public class IntegerGraph {
      * Removes vertices from graph that are certain to be in the solution.
      * The rule is to add all neighbors of a vertex to the cover if their total weight is less than the weight of the vertex
      */
-    public void preprocess() {
+    public Set<Integer> preprocess() {
         System.out.println("Preprocessing...");
-        int totalRemoved = preprocessRecursive(1,0);
-        System.out.println("Pruned " + totalRemoved + " vertices from graph and added " + inCover.size() + " vertices to cover.\n");
+        return preprocessRecursive(1,0, new Set<Integer>());
     }
 
-    private int preprocessRecursive(int removed, int totalRemoved) {
-        if(removed == 0)
-            return totalRemoved;
+    private Set<Integer> preprocessRecursive(int removed, int totalRemoved, Set<Integer> inCover) {
+        if(removed == 0) {
+            System.out.println("Pruned " + totalRemoved + " vertices from graph and added " + inCover.size() + " vertices to cover.\n");
+            return inCover;
+        }
+
 
 
         Set<Integer> remove = new Set<>();
@@ -266,13 +266,13 @@ public class IntegerGraph {
             neighbors = getNeighbors(vertex);
             if (weights.get(vertex) >= getSetWeight(neighbors)) {
                 remove.add(vertex);
-                this.inCover.addAll(neighbors);
+                inCover.addAll(neighbors);
             }
         }
         removed = remove.size();
 
         // update graph
-        remove.addAll(this.inCover);
+        remove.addAll(inCover);
 
         this.vertices.removeAll(remove);
 
@@ -284,7 +284,7 @@ public class IntegerGraph {
             adjacency.put(vertex, neighbors.minus(remove));
         });
 
-        return preprocessRecursive(removed, totalRemoved+remove.size());
+        return preprocessRecursive(removed, totalRemoved+remove.size(), inCover);
     }
 
     /**

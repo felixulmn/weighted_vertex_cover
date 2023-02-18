@@ -61,6 +61,7 @@ public class Main {
 
         // Initialize graph
         IntegerGraph myGraph = null;
+        Set<Integer> minimumVertexCover = new Set<>();
 
         try {
             myGraph = IntegerGraph.fromVehicleRoutingApplication(inputFileName);
@@ -74,17 +75,16 @@ public class Main {
             edgecount += neighbors.size();
         }
         edgecount /= 2;
-
-
         System.out.println("Initialized Graph.");
         System.out.println(String.format("Added %s vertices and %s edges", myGraph.vertices.size(), edgecount));
 
         // TODO add benchmarking timer
 
+        long start = System.currentTimeMillis();
+
         // Optional vertex pruning
         if(vertexPruning) {
-            myGraph.preprocess();
-            myGraph.initialCover = myGraph.vertices; // update initialCover to account for removed vertices
+            minimumVertexCover.addAll(myGraph.preprocess());
         }
 
         // Optional disconnected subgraph splitting (subgraphs are in ascending order by vertexcount)
@@ -98,80 +98,30 @@ public class Main {
 
         // Optional calculation of greedy solutions
         if(greedySolution) {
-            graphs.forEach(g -> g.initialCover = g.getGreedyCover(g.vertices, g.neighborWeightDifferenceComparator));
+            graphs.forEach(g -> g.initialSolution = g.getGreedyCover(g.vertices, g.neighborWeightDifferenceComparator));
+        } else {
+            graphs.forEach(g -> g.initialSolution = (Set<Integer>) g.vertices.clone());
         }
 
         // Calculate Vertex Cover
-        Set<Integer> cover = myGraph.inCover;   // add vertices that might have been pruned earlier
 
-        long totalWeight = myGraph.getSetWeight(cover);
+        long totalWeight = myGraph.getSetWeight(minimumVertexCover);
         for(IntegerGraph graph: graphs) {
-            totalWeight += graph.getSetWeight(graph.initialCover);
+            totalWeight += graph.getSetWeight(graph.initialSolution);
         }
 
         Set<Integer> currentSolution;
         // TODO there are mulitple ways of running this. See Besprechung 5 Notes for further information
         for(IntegerGraph graph : graphs) {
-            totalWeight -= graph.getSetWeight(graph.initialCover);
-            currentSolution = graph.mvc_localsearch(graph.initialCover, k_max, totalWeight);
+            totalWeight -= graph.getSetWeight(graph.initialSolution);
+            currentSolution = graph.mvc_localsearch(graph.initialSolution, k_max, totalWeight);
             totalWeight += graph.getSetWeight(currentSolution);
-            cover.addAll(currentSolution);
+            minimumVertexCover.addAll(currentSolution);
         }
 
-
-        System.out.println("Finished Running");
-        System.out.println("Solution weight: " + myGraph.getSetWeight(cover));
-        System.out.println("Solution is cover: " + myGraph.isVertexCover(cover));
-        System.out.println(totalWeight);
-
-
-/*        myGraph.preprocess();
-        Set<Integer> initialCover = (Set<Integer>) myGraph.vertices.clone();
-
-        System.out.println("Initial solution");
-        System.out.println(String.format("Is cover: %s",myGraph.isVertexCover(initialCover)));
-        System.out.println(String.format("Weight: %d", myGraph.getSetWeight(initialCover)+myGraph.getSetWeight(myGraph.inCover)));
-        System.out.println();*/
-
-/*
-        Set<Integer> greedyCover = myGraph.getGreedyCover(initialCover, myGraph.neighborWeightDifferenceComparator);
-        System.out.println("Greedy solution");
-        System.out.println(String.format("Is cover: %s",myGraph.isVertexCover(greedyCover)));
-        System.out.println(String.format("Weight: %d", myGraph.getSetWeight(greedyCover)+myGraph.getSetWeight(myGraph.inCover)));
-        System.out.println();
-*/
-
-
-/*
-        long start = System.currentTimeMillis();
-        TreeSet<IntegerGraph> subgraphs = myGraph.getDisconnectedSubgraphs(myGraph.vertices);
-        System.out.println("Took " + ((System.currentTimeMillis()-start)/1000) + " seconds to compute subsets");
-
-        System.out.println("Number of disconnected subgraphs: " + subgraphs.size());
-
-        for(IntegerGraph subgraph : subgraphs) {
-            System.out.println(subgraph.vertices.size());
-        }
-*/
-
-
-
-        // Calculate minimum vertex cover and measure time
-/*
-        long start = System.currentTimeMillis();
-        Set<Integer> minCover = myGraph.mvc_localsearch(greedyCover, myGraph.vertices.size());
-
-        System.out.println("\nTook " + ((System.currentTimeMillis()-start)/1000.0) +  " seconds to calculate minimum vertex cover.");
-        System.out.println(String.format("Is cover: %s",myGraph.isVertexCover(minCover)));
-        System.out.println(String.format("Weight: %d", myGraph.getSetWeight(minCover)));
-        System.out.println("Cover nodes:");
-        System.out.println(minCover);
-*/
-
-
-
-        //System.out.println(minCover.union(myGraph.inCover));
-
-
+        long time = (System.currentTimeMillis() - start)/1000;
+        System.out.println("Finished Running in " + time + " seconds.");
+        System.out.println("Solution weight: " + myGraph.getSetWeight(minimumVertexCover));
+        System.out.println("Solution is cover: " + myGraph.isVertexCover(minimumVertexCover));
     }
 }
