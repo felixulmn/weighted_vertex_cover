@@ -19,6 +19,7 @@ public class Main {
         Integer k_max = null;
         boolean greedySolution = false;
         boolean vertexPruning = false;
+        boolean cliquePruning = false;
         boolean splitSubgraphs = false;
 
         // TODO might add argument for --help flag that outputs verbose description for flags and positional arguments
@@ -34,6 +35,10 @@ public class Main {
                 case "-v":
                 case "--vertex-pruning":
                     vertexPruning = true;
+                    break;
+                case "-c":
+                case "--clique-pruning":
+                    cliquePruning = true;
                     break;
                 case "-s":
                 case "--split-subgraphs":
@@ -78,13 +83,17 @@ public class Main {
         System.out.println("Initialized Graph.");
         System.out.println(String.format("Added %s vertices and %s edges", myGraph.vertices.size(), edgecount));
 
-        // TODO add benchmarking timer
-
         long start = System.currentTimeMillis();
 
         // Optional vertex pruning
         if(vertexPruning) {
             minimumVertexCover.addAll(myGraph.preprocess());
+        }
+
+        // TODO edge (8,15) was added to toyproblem2
+        // Optional clique pruning
+        if(cliquePruning) {
+            minimumVertexCover.addAll(myGraph.doCliquePruning());
         }
 
         // Optional disconnected subgraph splitting (subgraphs are in ascending order by vertexcount)
@@ -104,7 +113,6 @@ public class Main {
         }
 
         // Calculate Vertex Cover
-
         long totalWeight = myGraph.getSetWeight(minimumVertexCover);
         for(IntegerGraph graph: graphs) {
             totalWeight += graph.getSetWeight(graph.initialSolution);
