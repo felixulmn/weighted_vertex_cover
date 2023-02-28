@@ -354,15 +354,25 @@ public class IntegerGraph {
         vertexQueue.addAll(vertices);
         HashMap<Integer, Set<Integer>> adjacencyCopy = this.getAdjacencyCopy();
 
+        System.out.println("Queue built.");
+
         while(adjacencyCopy.size() != 0) {
             Integer v = vertexQueue.poll();
-            cover.add(v);
 
-            adjacencyCopy.entrySet().removeIf(entry -> {
-                HashSet<Integer> neighbors = entry.getValue();
-                neighbors.remove(v);
-                return entry.getKey() == v || neighbors.size() == 0;
-            });
+            if(adjacencyCopy.containsKey(v))
+                cover.add(v);
+            else
+                continue;
+
+            Set<Integer> neighbors = adjacencyCopy.get(v);
+
+            for(Integer neighbor : neighbors) {
+                adjacencyCopy.get(neighbor).remove(v);
+                if(adjacencyCopy.get(neighbor).size() == 0)
+                    adjacencyCopy.remove(neighbor);
+            }
+
+            adjacencyCopy.remove(v);
         }
 
         return cover;
