@@ -19,6 +19,7 @@ public class Main {
         Integer k_max = null;
         boolean greedySolution = false;
         boolean vertexPruning = false;
+        boolean cliquePruning = false;
         boolean splitSubgraphs = false;
 
         // TODO might add argument for --help flag that outputs verbose description for flags and positional arguments
@@ -34,6 +35,10 @@ public class Main {
                 case "-v":
                 case "--vertex-pruning":
                     vertexPruning = true;
+                    break;
+                case "-c":
+                case "--clique-pruning":
+                    cliquePruning = true;
                     break;
                 case "-s":
                 case "--split-subgraphs":
@@ -78,13 +83,17 @@ public class Main {
         System.out.println("Initialized Graph.");
         System.out.println(String.format("Added %s vertices and %s edges", myGraph.vertices.size(), edgecount));
 
-        // TODO add benchmarking timer
-
         long start = System.currentTimeMillis();
 
         // Optional vertex pruning
         if(vertexPruning) {
             minimumVertexCover.addAll(myGraph.preprocess());
+        }
+
+        // TODO edge (8,15) was added to toyproblem2
+        // Optional clique pruning
+        if(cliquePruning) {
+            minimumVertexCover.addAll(myGraph.doCliquePruning());
         }
 
         // Optional disconnected subgraph splitting (subgraphs are in ascending order by vertexcount)
@@ -103,8 +112,10 @@ public class Main {
             graphs.forEach(g -> g.initialSolution = (Set<Integer>) g.vertices.clone());
         }
 
-        // Calculate Vertex Cover
+        System.out.println(myGraph.getSetWeight(myGraph.vertices));
+        System.out.println(myGraph.getSetWeight(myGraph.initialSolution));
 
+        // Calculate Vertex Cover
         long totalWeight = myGraph.getSetWeight(minimumVertexCover);
         for(IntegerGraph graph: graphs) {
             totalWeight += graph.getSetWeight(graph.initialSolution);
@@ -112,6 +123,8 @@ public class Main {
 
         Set<Integer> currentSolution;
         // TODO there are mulitple ways of running this. See Besprechung 5 Notes for further information
+
+
         for(IntegerGraph graph : graphs) {
             totalWeight -= graph.getSetWeight(graph.initialSolution);
             currentSolution = graph.mvc_localsearch(graph.initialSolution, k_max, totalWeight);
@@ -119,9 +132,11 @@ public class Main {
             minimumVertexCover.addAll(currentSolution);
         }
 
-        long time = (System.currentTimeMillis() - start)/1000;
+        long time = (System.currentTimeMillis() - start);
         System.out.println("Finished Running in " + time + " seconds.");
         System.out.println("Solution weight: " + myGraph.getSetWeight(minimumVertexCover));
         System.out.println("Solution is cover: " + myGraph.isVertexCover(minimumVertexCover));
+
+
     }
 }

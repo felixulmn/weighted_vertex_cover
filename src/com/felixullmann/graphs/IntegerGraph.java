@@ -158,6 +158,21 @@ public class IntegerGraph {
         return totalWeight;
     }
 
+    /**
+     * Removes given vertices from graph
+     * @param vertexSet vertices to be removed
+     */
+    public void removeVertices(Set<Integer> vertexSet) {
+        this.vertices.removeAll(vertexSet);
+
+        for(Integer vertex : vertexSet)
+            this.adjacency.remove(vertex);
+
+        this.adjacency.forEach((vertex, neighbors) -> {
+            adjacency.put(vertex, neighbors.minus(vertexSet));
+        });
+    }
+
 
     public Set<Integer> mvc_localsearch(Set<Integer> cover, int kMax, long totalWeight) {
 
@@ -273,18 +288,54 @@ public class IntegerGraph {
 
         // update graph
         remove.addAll(inCover);
-
-        this.vertices.removeAll(remove);
-
-        for (Integer vertex : remove) {
-            this.adjacency.remove(vertex);
-        }
-
-        this.adjacency.forEach((vertex, neighbors) -> {
-            adjacency.put(vertex, neighbors.minus(remove));
-        });
+        this.removeVertices(remove);
 
         return preprocessRecursive(removed, totalRemoved+remove.size(), inCover);
+    }
+
+    public Set<Integer> doCliquePruning() {
+        Set<Integer> inCover = new Set<>();
+        Set<Integer> remove = new Set<>();
+        boolean improved = true;
+
+
+        while(improved == true) {
+            improved = false;
+
+            outer:
+            for (Integer v : this.vertices) {
+                Set<Integer> nv = this.getNeighbors(v);
+                nv.add(v);
+
+                Integer max_w = -1;
+
+                for (Integer n : adjacency.get(v)) {
+                    Set<Integer> nn = this.getNeighbors(n);
+                    nn.add(n);
+
+                    if (!nn.intersect(nv).equals(nv))
+                        continue outer;
+
+                    if (this.weights.get(n) > max_w)
+                        max_w = this.weights.get(n);
+                }
+
+                if (!(this.weights.get(v) > max_w)) {
+                    continue;
+                }
+
+                System.out.println(nv.size() + "-clique found with root " + v + "\n");
+                remove.addAll(nv);
+                nv.remove(v);
+                inCover.addAll(nv);
+                improved = true;
+            }
+
+            this.removeVertices(remove);
+        }
+
+        System.out.println("Pruned " + remove.size() + " vertices from graph and added " + inCover.size() + " vertices to cover.\n");
+        return inCover;
     }
 
     /**
@@ -303,15 +354,25 @@ public class IntegerGraph {
         vertexQueue.addAll(vertices);
         HashMap<Integer, Set<Integer>> adjacencyCopy = this.getAdjacencyCopy();
 
+        System.out.println("Queue built.");
+
         while(adjacencyCopy.size() != 0) {
             Integer v = vertexQueue.poll();
-            cover.add(v);
 
-            adjacencyCopy.entrySet().removeIf(entry -> {
-                HashSet<Integer> neighbors = entry.getValue();
-                neighbors.remove(v);
-                return entry.getKey() == v || neighbors.size() == 0;
-            });
+            if(adjacencyCopy.containsKey(v))
+                cover.add(v);
+            else
+                continue;
+
+            Set<Integer> neighbors = adjacencyCopy.get(v);
+
+            for(Integer neighbor : neighbors) {
+                adjacencyCopy.get(neighbor).remove(v);
+                if(adjacencyCopy.get(neighbor).size() == 0)
+                    adjacencyCopy.remove(neighbor);
+            }
+
+            adjacencyCopy.remove(v);
         }
 
         return cover;
