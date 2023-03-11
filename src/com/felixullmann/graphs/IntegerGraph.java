@@ -150,6 +150,7 @@ public class IntegerGraph {
      * @return returns the sum of all the vertices' weights in the set.
      */
     public long getSetWeight(Set<Integer> vertexSet) {
+
         long totalWeight = 0;
         for(Integer vertex : vertexSet) {
             totalWeight += weights.get(vertex);
@@ -261,13 +262,12 @@ public class IntegerGraph {
      * The rule is to add all neighbors of a vertex to the cover if their total weight is less than the weight of the vertex
      */
     public Set<Integer> preprocess() {
-        System.out.println("Preprocessing...");
         return preprocessRecursive(1,0, new Set<Integer>());
     }
 
     private Set<Integer> preprocessRecursive(int removed, int totalRemoved, Set<Integer> inCover) {
         if(removed == 0) {
-            System.out.println("Pruned " + totalRemoved + " vertices from graph and added " + inCover.size() + " vertices to cover.\n");
+            System.out.println("Vertex Reduction: Removed " + totalRemoved + " vertices from graph and added " + inCover.size() + " vertices to cover.\n");
             return inCover;
         }
 
@@ -293,6 +293,10 @@ public class IntegerGraph {
         return preprocessRecursive(removed, totalRemoved+remove.size(), inCover);
     }
 
+    /**
+     * Removes vertices from graph that are certain to be in the solution.
+     * The rule is to add all neighbors of a vertex to the cover if the vertex is clique-isolated and the heaviest among its neighbors
+     */
     public Set<Integer> doCliquePruning() {
         Set<Integer> inCover = new Set<>();
         Set<Integer> remove = new Set<>();
@@ -334,7 +338,7 @@ public class IntegerGraph {
             this.removeVertices(remove);
         }
 
-        System.out.println("Pruned " + remove.size() + " vertices from graph and added " + inCover.size() + " vertices to cover.\n");
+        System.out.println("Clique Reduction: Removed " + remove.size() + " vertices from graph and added " + inCover.size() + " vertices to cover.\n");
         return inCover;
     }
 
@@ -379,7 +383,7 @@ public class IntegerGraph {
     }
 
     /**
-     * Get all subgraphs induced by vertices
+     * Get all disconnected subgraphs.
      * @param vertices
      * @return returns a set of vertex sets that represent disconnected subgraphs induced by vertices
      */

@@ -112,9 +112,6 @@ public class Main {
             graphs.forEach(g -> g.initialSolution = (Set<Integer>) g.vertices.clone());
         }
 
-        System.out.println(myGraph.getSetWeight(myGraph.vertices));
-        System.out.println(myGraph.getSetWeight(myGraph.initialSolution));
-
         // Calculate Vertex Cover
         long totalWeight = myGraph.getSetWeight(minimumVertexCover);
         for(IntegerGraph graph: graphs) {
@@ -133,7 +130,7 @@ public class Main {
         }
 
         long time = (System.currentTimeMillis() - start);
-        System.out.println("Finished Running in " + time + " seconds.");
+        System.out.println("Finished Running in " + time + " milliseconds (" + time/1000 + " seconds.)");
         System.out.println("Solution weight: " + myGraph.getSetWeight(minimumVertexCover));
         System.out.println("Solution is cover: " + myGraph.isVertexCover(minimumVertexCover));
 
