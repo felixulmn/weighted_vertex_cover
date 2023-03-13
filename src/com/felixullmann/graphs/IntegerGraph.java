@@ -216,6 +216,91 @@ public class IntegerGraph {
         return cover;
     }
 
+    public Set<Integer> localSearch(Set<Integer> cover, int kMax, long totalWeight) {
+        Set<Integer> S;
+
+        long start = System.currentTimeMillis();
+        long current;
+
+        for(int k = 1; k <= kMax; k++) {
+            current = (System.currentTimeMillis() - start)/1000;
+            System.out.println(String.format("%5s k = %s", current, k));
+
+            for(Integer vertex : cover) {
+                S = generateSwap(k, vertex, cover);
+                if(S.size() != 0) {
+                    cover = cover.minus(S).union(S.minus(cover));
+                    current = (System.currentTimeMillis() - start)/1000;
+                    System.out.println(String.format("%5s    w = %s", current, (getSetWeight(cover) + totalWeight)));
+                    // restart the k-loop at 1
+                    k = 0;
+                    break;
+                }
+
+            }
+
+        }
+
+        return cover;
+    }
+
+
+    public Set<Integer> localSearchVertexCycling(Set<Integer> cover, int kMax, long totalWeight) {
+        Set<Integer> S;
+        Integer vertex;
+        VertexCyclingIterator iterator = new VertexCyclingIterator(this.vertices);
+
+        long start = System.currentTimeMillis();
+        long current;
+
+        for(int k = 1; k <= kMax; k++) {
+            iterator.reset();
+
+            current = (System.currentTimeMillis() - start)/1000;
+            System.out.println(String.format("%5s k = %s", current, k));
+
+            while(iterator.hasNext()) {
+                vertex = iterator.next();
+                S = generateSwap(k, vertex, cover);
+                if(S.size() != 0) {
+                    cover = cover.minus(S).union(S.minus(cover));
+                    current = (System.currentTimeMillis() - start)/1000;
+                    System.out.println(String.format("%5s    w = %s", current, (getSetWeight(cover) + totalWeight)));
+
+
+                    iterator.markSwap();
+
+                    // restart the k-loop at 1
+                    if(k > 1) {
+                        k = 0;
+                        break;
+                    }
+                }
+            }
+        }
+
+        return cover;
+    }
+
+
+    public Set<Integer> generateSwap(int k, Integer vertex, Set<Integer> cover) {
+        Set<Integer> S;
+        Stack<Integer> P;
+        Integer p = null;
+        Set<Integer> F;
+
+        S = getNeighbors(vertex).minus(cover);
+        S.add(vertex);
+        P = new Stack<>();
+        P.addAll(getNeighbors(vertex).minus(cover));
+        if(k != 1 && P.isEmpty())
+            return new Set<>();
+        if(k != 1)
+            p = P.pop();
+        F = getNeighbors(vertex).intersect(cover);
+        return enumerate(k, cover, S, p, P, F);
+    }
+
     public Set<Integer> enumerate(int k, Set<Integer> cover, Set<Integer> S, Integer p, Stack<Integer> P, Set<Integer> F) {
 
         Set<Integer> s_intersect_c = S.intersect(cover);
@@ -431,7 +516,6 @@ public class IntegerGraph {
         private int currentIndex = 0;
 
         public VertexCyclingIterator(Set<Integer> vertices) {
-            System.out.println(vertices);
             this.vertices = vertices.toArray(new Integer[vertices.size()]);
         }
 
@@ -439,9 +523,14 @@ public class IntegerGraph {
             noSwap = 0;
         }
 
+        public void reset() {
+            noSwap = 0;
+            currentIndex = 0;
+        }
+
         @Override
         public boolean hasNext() {
-            return noSwap < (vertices.length-1);
+            return noSwap < vertices.length;
         }
 
         @Override

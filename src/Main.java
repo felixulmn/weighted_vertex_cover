@@ -85,6 +85,7 @@ public class Main {
         System.out.println(String.format("Added %s vertices and %s edges", myGraph.vertices.size(), edgecount));
 
 
+/*
         IntegerGraph.VertexCyclingIterator vertexCyclingIterator = new IntegerGraph.VertexCyclingIterator(myGraph.vertices);
 
         int i = 0;
@@ -92,24 +93,25 @@ public class Main {
             Integer next = vertexCyclingIterator.next();
             System.out.println(next);
 
-            if(i == 4) {
+           if(i == 4) {
                 System.out.println("lastswap: " + next);
                 vertexCyclingIterator.markSwap();
             }
 
             i++;
         }
+*/
 
 
 
- /*       long start = System.currentTimeMillis();
+        long start = System.currentTimeMillis();
 
         // Optional vertex pruning
         if(vertexPruning) {
             minimumVertexCover.addAll(myGraph.preprocess());
         }
 
-        // TODO edge (8,15) was added to toyproblem2
+        // TODO edge (8,15) was added to toyproblem2 (for clique pruning), has been removed again
         // Optional clique pruning
         if(cliquePruning) {
             minimumVertexCover.addAll(myGraph.doCliquePruning());
@@ -143,7 +145,7 @@ public class Main {
 
         for(IntegerGraph graph : graphs) {
             totalWeight -= graph.getSetWeight(graph.initialSolution);
-            currentSolution = graph.mvc_localsearch(graph.initialSolution, k_max, totalWeight);
+            currentSolution = graph.localSearchVertexCycling(graph.initialSolution, k_max, totalWeight);
             totalWeight += graph.getSetWeight(currentSolution);
             minimumVertexCover.addAll(currentSolution);
         }
@@ -151,7 +153,7 @@ public class Main {
         long time = (System.currentTimeMillis() - start);
         System.out.println("Finished Running in " + time + " milliseconds (" + time/1000 + " seconds.)");
         System.out.println("Solution weight: " + myGraph.getSetWeight(minimumVertexCover));
-        System.out.println("Solution is cover: " + myGraph.isVertexCover(minimumVertexCover));*/
+        System.out.println("Solution is cover: " + myGraph.isVertexCover(minimumVertexCover));
 
 
     }
