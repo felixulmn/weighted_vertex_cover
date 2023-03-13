@@ -174,7 +174,6 @@ public class IntegerGraph {
         });
     }
 
-
     public Set<Integer> mvc_localsearch(Set<Integer> cover, int kMax, long totalWeight) {
 
         Set<Integer> S;
@@ -423,5 +422,36 @@ public class IntegerGraph {
         }
 
         return subgraphs;
+    }
+
+    public static class VertexCyclingIterator implements Iterator<Integer> {
+
+        private Integer[] vertices;
+        private int noSwap = 0;
+        private int currentIndex = 0;
+
+        public VertexCyclingIterator(Set<Integer> vertices) {
+            System.out.println(vertices);
+            this.vertices = vertices.toArray(new Integer[vertices.size()]);
+        }
+
+        public void markSwap() {
+            noSwap = 0;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return noSwap < (vertices.length-1);
+        }
+
+        @Override
+        public Integer next() {
+            Integer vertex = vertices[currentIndex];
+            currentIndex++;
+            noSwap++;
+            if(currentIndex == vertices.length)
+                currentIndex = 0;
+            return vertex;
+        }
     }
 }

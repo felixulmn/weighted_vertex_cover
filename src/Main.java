@@ -3,6 +3,7 @@ import com.felixullmann.graphs.Set;
 
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.TreeSet;
 
 
@@ -83,7 +84,25 @@ public class Main {
         System.out.println("Initialized Graph.");
         System.out.println(String.format("Added %s vertices and %s edges", myGraph.vertices.size(), edgecount));
 
-        long start = System.currentTimeMillis();
+
+        IntegerGraph.VertexCyclingIterator vertexCyclingIterator = new IntegerGraph.VertexCyclingIterator(myGraph.vertices);
+
+        int i = 0;
+        while(vertexCyclingIterator.hasNext()) {
+            Integer next = vertexCyclingIterator.next();
+            System.out.println(next);
+
+            if(i == 4) {
+                System.out.println("lastswap: " + next);
+                vertexCyclingIterator.markSwap();
+            }
+
+            i++;
+        }
+
+
+
+ /*       long start = System.currentTimeMillis();
 
         // Optional vertex pruning
         if(vertexPruning) {
@@ -132,7 +151,7 @@ public class Main {
         long time = (System.currentTimeMillis() - start);
         System.out.println("Finished Running in " + time + " milliseconds (" + time/1000 + " seconds.)");
         System.out.println("Solution weight: " + myGraph.getSetWeight(minimumVertexCover));
-        System.out.println("Solution is cover: " + myGraph.isVertexCover(minimumVertexCover));
+        System.out.println("Solution is cover: " + myGraph.isVertexCover(minimumVertexCover));*/
 
 
     }
