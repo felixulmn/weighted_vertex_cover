@@ -174,6 +174,7 @@ public class IntegerGraph {
         });
     }
 
+    // default algorithm
     public Set<Integer> mvc_localsearch(Set<Integer> cover, int kMax, long totalWeight) {
 
         Set<Integer> S;
@@ -216,6 +217,7 @@ public class IntegerGraph {
         return cover;
     }
 
+    // default algorithm using generateSwap call
     public Set<Integer> localSearch(Set<Integer> cover, int kMax, long totalWeight) {
         Set<Integer> S;
 
@@ -244,17 +246,22 @@ public class IntegerGraph {
         return cover;
     }
 
-
+    // vertex cycling variant using iterator
     public Set<Integer> localSearchVertexCycling(Set<Integer> cover, int kMax, long totalWeight) {
         Set<Integer> S;
         Integer vertex;
         VertexCyclingIterator iterator = new VertexCyclingIterator(this.vertices);
+
+        int swapcount = 0;
+
+        boolean changes = false;
 
         long start = System.currentTimeMillis();
         long current;
 
         for(int k = 1; k <= kMax; k++) {
             iterator.reset();
+            changes = false;
 
             current = (System.currentTimeMillis() - start)/1000;
             System.out.println(String.format("%5s k = %s", current, k));
@@ -267,18 +274,85 @@ public class IntegerGraph {
                     current = (System.currentTimeMillis() - start)/1000;
                     System.out.println(String.format("%5s    w = %s", current, (getSetWeight(cover) + totalWeight)));
 
+                    changes = true;
 
                     iterator.markSwap();
 
+                    swapcount++;
                     // restart the k-loop at 1
-                    if(k > 1) {
+                    if(k > 2) {
                         k = 0;
                         break;
                     }
                 }
             }
+
+            if(changes && k > 2)
+                k = 0;
         }
 
+        System.out.println("Swaps made: " + swapcount);
+        return cover;
+    }
+
+    // vertex cylcing variant using array and indices
+    public Set<Integer> localSearchCycling(Set<Integer> cover, int kMax, long totalWeight) {
+        long start = System.currentTimeMillis();
+        long current;
+
+        int maxCycling = 2;
+
+        Set<Integer> S;
+
+        Integer[] vertices = this.vertices.toArray(new Integer[this.vertices.size()]);
+        Integer vertex;
+
+        int swapcount = 0;
+
+        for(int k = 1; k <= kMax; k++) {
+            current = (System.currentTimeMillis() - start)/1000;
+            System.out.println(String.format("%5s k = %s", current, k));
+
+            int noSwap = 0;
+
+            for(int i = 0; i < vertices.length; i++) {
+                vertex = vertices[i];
+
+
+                S = generateSwap(k, vertex, cover);
+                if(S.size() != 0) {
+                    noSwap = 0;
+
+                    cover = cover.minus(S).union(S.minus(cover));
+                    current = (System.currentTimeMillis() - start)/1000;
+                    System.out.println(String.format("%5s    w = %s", current, (getSetWeight(cover) + totalWeight)));
+
+                    swapcount++;
+
+                    // restart the k-loop at 1
+                    if(k > maxCycling) {
+                        k = 0;
+                        break;
+                    }
+
+                } else {
+                    noSwap++;
+                }
+
+                if(noSwap == vertices.length)
+                    break;
+
+/*                if(i == vertices.length-1 && k <= maxCycling)
+                    i = 0;*/
+
+                if(i == vertices.length-1 && k <= maxCycling && k > 1)
+                    i = 0;
+
+
+            }
+        }
+
+        System.out.println("Swaps made: " + swapcount);
         return cover;
     }
 
