@@ -95,6 +95,21 @@ public class IntegerGraph {
     }
 
     /**
+     * Calculates the set of vertices adjacent to a given vertex set
+     * @param vertices the set of vertices to find the neighbors of
+     * @return set of integers representing the neighbors
+     */
+    public Set<Integer> getNeighbors(Set<Integer> vertices) {
+        Set<Integer> neighbors = new Set<>();
+
+        for(Integer vertex : vertices) {
+            neighbors.addAll(this.adjacency.get(vertex));
+        }
+
+        return neighbors;
+    }
+
+    /**
      * Determines if a given vertex set from a graph is independent
      * @param vertexSet the set of vertices to be tested for independence
      * @return true when vertexSet is independent, false otherwise
@@ -186,7 +201,8 @@ public class IntegerGraph {
         long current;
 
         for(int k = 1; k <= kMax; k++) {
-            current = (System.currentTimeMillis() - start)/1000;
+            //current = (System.currentTimeMillis() - start)/1000;
+            current = 0;
             System.out.println(String.format("%5s k = %s", current, k));
 
             for(Integer vertex : cover) {
@@ -202,11 +218,90 @@ public class IntegerGraph {
                 S = enumerate(k, cover, S, p, P, F);
                 if(S.size() != 0) {
                     cover = cover.minus(S).union(S.minus(cover));
-                    current = (System.currentTimeMillis() - start)/1000;
+                    //current = (System.currentTimeMillis() - start)/1000;
+                    current = 0;
                     System.out.println(String.format("%5s    w = %s", current, (getSetWeight(cover) + totalWeight)));
                     // restart the k-loop at 1
                     k = 0;
                     break;
+                }
+
+            }
+
+        }
+
+        return cover;
+    }
+
+    public Set<Integer> localsearch_pruning(Set<Integer> cover, int kMax, long totalWeight) {
+
+        Set<Integer> S;
+        Stack<Integer> P;
+        Integer p = null;
+        Set<Integer> F;
+
+
+        long start = System.currentTimeMillis();
+        long current;
+
+
+        Set<Integer>[] R = new Set[kMax];
+        for(int i = 0; i < kMax; i++) {
+            R[i] = (Set<Integer>) this.vertices.clone();
+        }
+
+/*
+        void generateSets(Set<Integer> S) {
+            Set<Integer> frontier = getNeighbors(S);
+            Set<Integer> M = S.union(frontier);
+
+            for(int i = 0; i < kMax; i++) {
+                System.out.println(i + ": " + M);
+                frontier = getNeighbors(frontier);
+                M.addAll(frontier);
+            }
+        }
+*/
+
+
+
+        for(int k = 1; k <= kMax; k++) {
+            //current = (System.currentTimeMillis() - start)/1000;
+            current = 0;
+            System.out.println(String.format("%5s k = %s", current, k));
+
+            for(Integer vertex : cover.intersect(R[k-1])) {
+                S = getNeighbors(vertex).minus(cover);
+                S.add(vertex);
+                P = new Stack<>();
+                P.addAll(getNeighbors(vertex).minus(cover));
+                if(k != 1 && P.isEmpty())
+                    continue;
+                if(k != 1)
+                    p = P.pop();
+                F = this.vertices.minus(R[k-1]).union(getNeighbors(vertex)).intersect(cover);                             //getNeighbors(vertex).intersect(cover);
+                S = enumerate(k, cover, S, p, P, F);
+                if(S.size() != 0) {
+                    cover = cover.minus(S).union(S.minus(cover));
+                    //current = (System.currentTimeMillis() - start)/1000;
+                    current = 0;
+                    System.out.println(String.format("%5s    w = %s", current, (getSetWeight(cover) + totalWeight)));
+                    // update R
+                        Set<Integer> frontier = getNeighbors(S);
+                        Set<Integer> M = S.union(frontier);
+
+                        for(int i = 0; i < kMax; i++) {
+                            R[i].addAll(M);
+                            frontier = getNeighbors(frontier);
+                            M.addAll(frontier);
+                        }
+                    // end update R
+
+                    // restart the k-loop at 1
+                    k = 0;
+                    break;
+                } else {
+                    R[k-1].remove(vertex);
                 }
 
             }
@@ -420,4 +515,29 @@ public class IntegerGraph {
 
         return subgraphs;
     }
+
+    public void neighborhoodExpansion(Set<Integer> S, int k) {
+        Set<Integer> M = S.union(getNeighbors(S));
+
+        for(int i = 0; i < k; i++) {
+            System.out.println(i + ": " + M);
+            M.addAll(getNeighbors(M));
+        }
+
+    }
+
+    public void neighborhoodExpansion2(Set<Integer> S, int k) {
+
+        Set<Integer> frontier = getNeighbors(S);
+        Set<Integer> M = S.union(frontier);
+
+        for(int i = 0; i < k; i++) {
+            System.out.println(i + ": " + M);
+            frontier = getNeighbors(frontier);
+            M.addAll(frontier);
+        }
+
+    }
+
+
 }

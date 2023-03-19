@@ -83,6 +83,15 @@ public class Main {
         System.out.println("Initialized Graph.");
         System.out.println(String.format("Added %s vertices and %s edges", myGraph.vertices.size(), edgecount));
 
+
+/*        Set<Integer> S = new Set<>();
+        S.add(7);
+        S.add(8);
+        myGraph.neighborhoodExpansion(S,k_max);
+        myGraph.neighborhoodExpansion2(S, k_max);
+        System.exit(0);*/
+
+
         long start = System.currentTimeMillis();
 
         // Optional vertex pruning
@@ -127,7 +136,7 @@ public class Main {
 
         for(IntegerGraph graph : graphs) {
             totalWeight -= graph.getSetWeight(graph.initialSolution);
-            currentSolution = graph.mvc_localsearch(graph.initialSolution, k_max, totalWeight);
+            currentSolution = graph.localsearch_pruning(graph.initialSolution, k_max, totalWeight);
             totalWeight += graph.getSetWeight(currentSolution);
             minimumVertexCover.addAll(currentSolution);
         }
