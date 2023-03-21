@@ -136,13 +136,13 @@ public class Main {
 
         for(IntegerGraph graph : graphs) {
             totalWeight -= graph.getSetWeight(graph.initialSolution);
-            currentSolution = graph.localsearch_pruning(graph.initialSolution, k_max, totalWeight);
+            currentSolution = graph.mvc_localsearch(graph.initialSolution, k_max, totalWeight);
             totalWeight += graph.getSetWeight(currentSolution);
             minimumVertexCover.addAll(currentSolution);
         }
 
         long time = (System.currentTimeMillis() - start);
-        System.out.println("Finished Running in " + time + " seconds.");
+        System.out.println("Finished Running in " + time + " milliseconds.");
         System.out.println("Solution weight: " + myGraph.getSetWeight(minimumVertexCover));
         System.out.println("Solution is cover: " + myGraph.isVertexCover(minimumVertexCover));
 

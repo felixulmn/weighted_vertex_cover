@@ -201,8 +201,8 @@ public class IntegerGraph {
         long current;
 
         for(int k = 1; k <= kMax; k++) {
-            //current = (System.currentTimeMillis() - start)/1000;
-            current = 0;
+            current = (System.currentTimeMillis() - start)/1000;
+            //current = 0;
             System.out.println(String.format("%5s k = %s", current, k));
 
             for(Integer vertex : cover) {
@@ -218,8 +218,8 @@ public class IntegerGraph {
                 S = enumerate(k, cover, S, p, P, F);
                 if(S.size() != 0) {
                     cover = cover.minus(S).union(S.minus(cover));
-                    //current = (System.currentTimeMillis() - start)/1000;
-                    current = 0;
+                    current = (System.currentTimeMillis() - start)/1000;
+                    //current = 0;
                     System.out.println(String.format("%5s    w = %s", current, (getSetWeight(cover) + totalWeight)));
                     // restart the k-loop at 1
                     k = 0;
@@ -250,24 +250,9 @@ public class IntegerGraph {
             R[i] = (Set<Integer>) this.vertices.clone();
         }
 
-/*
-        void generateSets(Set<Integer> S) {
-            Set<Integer> frontier = getNeighbors(S);
-            Set<Integer> M = S.union(frontier);
-
-            for(int i = 0; i < kMax; i++) {
-                System.out.println(i + ": " + M);
-                frontier = getNeighbors(frontier);
-                M.addAll(frontier);
-            }
-        }
-*/
-
-
-
         for(int k = 1; k <= kMax; k++) {
-            //current = (System.currentTimeMillis() - start)/1000;
-            current = 0;
+            current = (System.currentTimeMillis() - start)/1000;
+            //current = 0;
             System.out.println(String.format("%5s k = %s", current, k));
 
             for(Integer vertex : cover.intersect(R[k-1])) {
@@ -279,12 +264,12 @@ public class IntegerGraph {
                     continue;
                 if(k != 1)
                     p = P.pop();
-                F = this.vertices.minus(R[k-1]).union(getNeighbors(vertex)).intersect(cover);                             //getNeighbors(vertex).intersect(cover);
+                F = ((this.vertices.minus(R[k-1])).union(getNeighbors(vertex))).intersect(cover);
                 S = enumerate(k, cover, S, p, P, F);
                 if(S.size() != 0) {
                     cover = cover.minus(S).union(S.minus(cover));
-                    //current = (System.currentTimeMillis() - start)/1000;
-                    current = 0;
+                    current = (System.currentTimeMillis() - start)/1000;
+                    //current = 0;
                     System.out.println(String.format("%5s    w = %s", current, (getSetWeight(cover) + totalWeight)));
                     // update R
                         Set<Integer> frontier = getNeighbors(S);
@@ -325,7 +310,8 @@ public class IntegerGraph {
                 return new Set<>();
         }
 
-        for(Integer b : getNeighbors(p).minus(S.union(F))) {
+        Set<Integer> FF = (Set<Integer>) F.clone();
+        for(Integer b : getNeighbors(p).minus(S.union(FF))) {
             Set<Integer> nb = getNeighbors(b);
             //if(nb.intersect(F.minus(cover)).size() == 0) {
                 nb = nb.minus(S.union(cover));
@@ -337,18 +323,18 @@ public class IntegerGraph {
                 Set<Integer> SS = S.union(nb);
                 SS.add(b);
 
-                Set<Integer> result = enumerate(k,cover,SS,pp, PP, F);
+                Set<Integer> result = enumerate(k,cover,SS,pp, PP, FF);
                 if(result.size() != 0)
                     return result;
             //}
-            F.add(b);
+            FF.add(b);
         }
 
 
         if(P.isEmpty())
             return new Set<>();
         Integer pp = P.pop();
-        return enumerate(k, cover, S, pp, P, F);
+        return enumerate(k, cover, S, pp, P, FF);
     }
 
     /**
