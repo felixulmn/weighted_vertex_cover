@@ -1,10 +1,8 @@
 import com.felixullmann.graphs.IntegerGraph;
 import com.felixullmann.graphs.Set;
 
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.TreeSet;
-
 
 /*
     USED DATASETS
@@ -17,6 +15,7 @@ public class Main {
         // Parse arguments and flags
         String inputFileName = null;
         Integer k_max = null;
+
         boolean greedySolution = false;
         boolean vertexPruning = false;
         boolean cliquePruning = false;
@@ -90,7 +89,7 @@ public class Main {
             minimumVertexCover.addAll(myGraph.preprocess());
         }
 
-        // TODO edge (8,15) was added to toyproblem2
+        // TODO edge (8,15) was added to toyproblem2 (for clique pruning), has been removed again
         // Optional clique pruning
         if(cliquePruning) {
             minimumVertexCover.addAll(myGraph.doCliquePruning());
@@ -112,9 +111,6 @@ public class Main {
             graphs.forEach(g -> g.initialSolution = (Set<Integer>) g.vertices.clone());
         }
 
-        System.out.println(myGraph.getSetWeight(myGraph.vertices));
-        System.out.println(myGraph.getSetWeight(myGraph.initialSolution));
-
         // Calculate Vertex Cover
         long totalWeight = myGraph.getSetWeight(minimumVertexCover);
         for(IntegerGraph graph: graphs) {
@@ -122,18 +118,16 @@ public class Main {
         }
 
         Set<Integer> currentSolution;
-        // TODO there are mulitple ways of running this. See Besprechung 5 Notes for further information
-
 
         for(IntegerGraph graph : graphs) {
             totalWeight -= graph.getSetWeight(graph.initialSolution);
-            currentSolution = graph.mvc_localsearch(graph.initialSolution, k_max, totalWeight);
+            currentSolution = graph.localSearch_pruning(graph.initialSolution, k_max, totalWeight);
             totalWeight += graph.getSetWeight(currentSolution);
             minimumVertexCover.addAll(currentSolution);
         }
 
         long time = (System.currentTimeMillis() - start);
-        System.out.println("Finished Running in " + time + " milliseconds.");
+        System.out.println("Finished Running in " + time + " milliseconds (" + time/1000 + " seconds.)");
         System.out.println("Solution weight: " + myGraph.getSetWeight(minimumVertexCover));
         System.out.println("Solution is cover: " + myGraph.isVertexCover(minimumVertexCover));
 

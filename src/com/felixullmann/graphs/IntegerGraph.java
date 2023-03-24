@@ -165,6 +165,7 @@ public class IntegerGraph {
      * @return returns the sum of all the vertices' weights in the set.
      */
     public long getSetWeight(Set<Integer> vertexSet) {
+
         long totalWeight = 0;
         for(Integer vertex : vertexSet) {
             totalWeight += weights.get(vertex);
@@ -188,14 +189,9 @@ public class IntegerGraph {
         });
     }
 
-
-    public Set<Integer> mvc_localsearch(Set<Integer> cover, int kMax, long totalWeight) {
-
+    // default algorithm using generateSwap call
+    public Set<Integer> localSearch(Set<Integer> cover, int kMax, long totalWeight) {
         Set<Integer> S;
-        Stack<Integer> P;
-        Integer p = null;
-        Set<Integer> F;
-
 
         long start = System.currentTimeMillis();
         long current;
@@ -205,16 +201,7 @@ public class IntegerGraph {
             System.out.println(String.format("%5s k = %s", current, k));
 
             for(Integer vertex : cover) {
-                S = getNeighbors(vertex).minus(cover);
-                S.add(vertex);
-                P = new Stack<>();
-                P.addAll(getNeighbors(vertex).minus(cover));
-                if(k != 1 && P.isEmpty())
-                    continue;
-                if(k != 1)
-                    p = P.pop();
-                F = getNeighbors(vertex).intersect(cover);
-                S = enumerate(k, cover, S, p, P, F);
+                S = generateSwap(k, vertex, cover);
                 if(S.size() != 0) {
                     cover = cover.minus(S).union(S.minus(cover));
                     current = (System.currentTimeMillis() - start)/1000;
@@ -231,7 +218,87 @@ public class IntegerGraph {
         return cover;
     }
 
-    public Set<Integer> localsearch_pruning(Set<Integer> cover, int kMax, long totalWeight) {
+    public Set<Integer> generateSwap(int k, Integer vertex, Set<Integer> cover) {
+        Set<Integer> S;
+        Stack<Integer> P;
+        Integer p = null;
+        Set<Integer> F;
+
+        S = getNeighbors(vertex).minus(cover);
+        S.add(vertex);
+        P = new Stack<>();
+        P.addAll(getNeighbors(vertex).minus(cover));
+        if(k != 1 && P.isEmpty())
+            return new Set<>();
+        if(k != 1)
+            p = P.pop();
+        F = getNeighbors(vertex).intersect(cover);
+        return enumerate(k, cover, S, p, P, F);
+    }
+
+    // vertex cylcing variant using array and indices
+    public Set<Integer> localSearch_cycling(Set<Integer> cover, int kMax, long totalWeight) {
+        long start = System.currentTimeMillis();
+        long current;
+
+        int maxCycling = 2;
+
+        Set<Integer> S;
+
+        Integer[] vertices = this.vertices.toArray(new Integer[this.vertices.size()]);
+        Integer vertex;
+
+        int swapcount = 0;
+
+        for(int k = 1; k <= kMax; k++) {
+            current = (System.currentTimeMillis() - start)/1000;
+            System.out.println(String.format("%5s k = %s", current, k));
+
+            int noSwap = 0;
+
+            for(int i = 0; i < vertices.length; i++) {
+                vertex = vertices[i];
+
+
+                S = generateSwap(k, vertex, cover);
+                if(S.size() != 0) {
+                    noSwap = 0;
+
+                    cover = cover.minus(S).union(S.minus(cover));
+                    current = (System.currentTimeMillis() - start)/1000;
+                    System.out.println(String.format("%5s    w = %s", current, (getSetWeight(cover) + totalWeight)));
+
+                    swapcount++;
+
+                    // restart the k-loop at 1
+                    if(k > maxCycling) {
+                        k = 0;
+                        break;
+                    }
+
+                } else {
+                    noSwap++;
+                }
+
+                if(noSwap == vertices.length)
+                    break;
+
+/*                if(i == vertices.length-1 && k <= maxCycling)
+                    i = 0;*/
+
+                if(i == vertices.length-1 && k <= maxCycling && k > 1)
+                    i = 0;
+
+
+            }
+        }
+
+        System.out.println("Swaps made: " + swapcount);
+        return cover;
+    }
+
+    //
+    public Set<Integer> localSearch_pruning(Set<Integer> cover, int kMax, long totalWeight) {
 
         Set<Integer> S;
         Stack<Integer> P;
@@ -268,14 +335,14 @@ public class IntegerGraph {
                     current = (System.currentTimeMillis() - start)/1000;
                     System.out.println(String.format("%5s    w = %s", current, (getSetWeight(cover) + totalWeight)));
                     // update R
-                        Set<Integer> frontier = getNeighbors(S);
-                        Set<Integer> M = S.union(frontier);
+                    Set<Integer> frontier = getNeighbors(S);
+                    Set<Integer> M = S.union(frontier);
 
-                        for(int i = 0; i < kMax; i++) {
-                            R[i].addAll(M);
-                            frontier = getNeighbors(frontier);
-                            M.addAll(frontier);
-                        }
+                    for(int i = 0; i < kMax; i++) {
+                        R[i].addAll(M);
+                        frontier = getNeighbors(frontier);
+                        M.addAll(frontier);
+                    }
                     // end update R
 
                     // restart the k-loop at 1
@@ -338,13 +405,12 @@ public class IntegerGraph {
      * The rule is to add all neighbors of a vertex to the cover if their total weight is less than the weight of the vertex
      */
     public Set<Integer> preprocess() {
-        System.out.println("Preprocessing...");
         return preprocessRecursive(1,0, new Set<Integer>());
     }
 
     private Set<Integer> preprocessRecursive(int removed, int totalRemoved, Set<Integer> inCover) {
         if(removed == 0) {
-            System.out.println("Pruned " + totalRemoved + " vertices from graph and added " + inCover.size() + " vertices to cover.\n");
+            System.out.println("Vertex Reduction: Removed " + totalRemoved + " vertices from graph and added " + inCover.size() + " vertices to cover.\n");
             return inCover;
         }
 
@@ -370,6 +436,10 @@ public class IntegerGraph {
         return preprocessRecursive(removed, totalRemoved+remove.size(), inCover);
     }
 
+    /**
+     * Removes vertices from graph that are certain to be in the solution.
+     * The rule is to add all neighbors of a vertex to the cover if the vertex is clique-isolated and the heaviest among its neighbors
+     */
     public Set<Integer> doCliquePruning() {
         Set<Integer> inCover = new Set<>();
         Set<Integer> remove = new Set<>();
@@ -411,7 +481,7 @@ public class IntegerGraph {
             this.removeVertices(remove);
         }
 
-        System.out.println("Pruned " + remove.size() + " vertices from graph and added " + inCover.size() + " vertices to cover.\n");
+        System.out.println("Clique Reduction: Removed " + remove.size() + " vertices from graph and added " + inCover.size() + " vertices to cover.\n");
         return inCover;
     }
 
@@ -497,29 +567,4 @@ public class IntegerGraph {
 
         return subgraphs;
     }
-
-    public void neighborhoodExpansion(Set<Integer> S, int k) {
-        Set<Integer> M = S.union(getNeighbors(S));
-
-        for(int i = 0; i < k; i++) {
-            System.out.println(i + ": " + M);
-            M.addAll(getNeighbors(M));
-        }
-
-    }
-
-    public void neighborhoodExpansion2(Set<Integer> S, int k) {
-
-        Set<Integer> frontier = getNeighbors(S);
-        Set<Integer> M = S.union(frontier);
-
-        for(int i = 0; i < k; i++) {
-            System.out.println(i + ": " + M);
-            frontier = getNeighbors(frontier);
-            M.addAll(frontier);
-        }
-
-    }
-
-
 }
