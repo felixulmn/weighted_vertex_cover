@@ -15,6 +15,7 @@ public class Main {
         // Parse arguments and flags
         String inputFileName = null;
         Integer k_max = null;
+
         boolean greedySolution = false;
         boolean vertexPruning = false;
         boolean cliquePruning = false;
@@ -120,7 +121,7 @@ public class Main {
 
         for(IntegerGraph graph : graphs) {
             totalWeight -= graph.getSetWeight(graph.initialSolution);
-            currentSolution = graph.localSearch(graph.initialSolution, k_max, totalWeight);
+            currentSolution = graph.localSearch_pruning(graph.initialSolution, k_max, totalWeight);
             totalWeight += graph.getSetWeight(currentSolution);
             minimumVertexCover.addAll(currentSolution);
         }

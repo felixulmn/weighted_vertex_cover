@@ -95,6 +95,21 @@ public class IntegerGraph {
     }
 
     /**
+     * Calculates the set of vertices adjacent to a given vertex set
+     * @param vertices the set of vertices to find the neighbors of
+     * @return set of integers representing the neighbors
+     */
+    public Set<Integer> getNeighbors(Set<Integer> vertices) {
+        Set<Integer> neighbors = new Set<>();
+
+        for(Integer vertex : vertices) {
+            neighbors.addAll(this.adjacency.get(vertex));
+        }
+
+        return neighbors;
+    }
+
+    /**
      * Determines if a given vertex set from a graph is independent
      * @param vertexSet the set of vertices to be tested for independence
      * @return true when vertexSet is independent, false otherwise
@@ -203,8 +218,26 @@ public class IntegerGraph {
         return cover;
     }
 
+    public Set<Integer> generateSwap(int k, Integer vertex, Set<Integer> cover) {
+        Set<Integer> S;
+        Stack<Integer> P;
+        Integer p = null;
+        Set<Integer> F;
+
+        S = getNeighbors(vertex).minus(cover);
+        S.add(vertex);
+        P = new Stack<>();
+        P.addAll(getNeighbors(vertex).minus(cover));
+        if(k != 1 && P.isEmpty())
+            return new Set<>();
+        if(k != 1)
+            p = P.pop();
+        F = getNeighbors(vertex).intersect(cover);
+        return enumerate(k, cover, S, p, P, F);
+    }
+
     // vertex cylcing variant using array and indices
-    public Set<Integer> localSearchCycling(Set<Integer> cover, int kMax, long totalWeight) {
+    public Set<Integer> localSearch_cycling(Set<Integer> cover, int kMax, long totalWeight) {
         long start = System.currentTimeMillis();
         long current;
 
@@ -264,22 +297,66 @@ public class IntegerGraph {
         return cover;
     }
 
-    public Set<Integer> generateSwap(int k, Integer vertex, Set<Integer> cover) {
+    //
+    public Set<Integer> localSearch_pruning(Set<Integer> cover, int kMax, long totalWeight) {
+
         Set<Integer> S;
         Stack<Integer> P;
         Integer p = null;
         Set<Integer> F;
 
-        S = getNeighbors(vertex).minus(cover);
-        S.add(vertex);
-        P = new Stack<>();
-        P.addAll(getNeighbors(vertex).minus(cover));
-        if(k != 1 && P.isEmpty())
-            return new Set<>();
-        if(k != 1)
-            p = P.pop();
-        F = getNeighbors(vertex).intersect(cover);
-        return enumerate(k, cover, S, p, P, F);
+
+        long start = System.currentTimeMillis();
+        long current;
+
+
+        Set<Integer>[] R = new Set[kMax];
+        for(int i = 0; i < kMax; i++) {
+            R[i] = (Set<Integer>) this.vertices.clone();
+        }
+
+        for(int k = 1; k <= kMax; k++) {
+            current = (System.currentTimeMillis() - start)/1000;
+            System.out.println(String.format("%5s k = %s", current, k));
+
+            for(Integer vertex : cover.intersect(R[k-1])) {
+                S = getNeighbors(vertex).minus(cover);
+                S.add(vertex);
+                P = new Stack<>();
+                P.addAll(getNeighbors(vertex).minus(cover));
+                if(k != 1 && P.isEmpty())
+                    continue;
+                if(k != 1)
+                    p = P.pop();
+                F = ((this.vertices.minus(R[k-1])).union(getNeighbors(vertex))).intersect(cover);
+                S = enumerate(k, cover, S, p, P, F);
+                if(S.size() != 0) {
+                    cover = cover.minus(S).union(S.minus(cover));
+                    current = (System.currentTimeMillis() - start)/1000;
+                    System.out.println(String.format("%5s    w = %s", current, (getSetWeight(cover) + totalWeight)));
+                    // update R
+                    Set<Integer> frontier = getNeighbors(S);
+                    Set<Integer> M = S.union(frontier);
+
+                    for(int i = 0; i < kMax; i++) {
+                        R[i].addAll(M);
+                        frontier = getNeighbors(frontier);
+                        M.addAll(frontier);
+                    }
+                    // end update R
+
+                    // restart the k-loop at 1
+                    k = 0;
+                    break;
+                } else {
+                    R[k-1].remove(vertex);
+                }
+
+            }
+
+        }
+
+        return cover;
     }
 
     public Set<Integer> enumerate(int k, Set<Integer> cover, Set<Integer> S, Integer p, Stack<Integer> P, Set<Integer> F) {
@@ -296,7 +373,8 @@ public class IntegerGraph {
                 return new Set<>();
         }
 
-        for(Integer b : getNeighbors(p).minus(S.union(F))) {
+        Set<Integer> FF = (Set<Integer>) F.clone();
+        for(Integer b : getNeighbors(p).minus(S.union(FF))) {
             Set<Integer> nb = getNeighbors(b);
             //if(nb.intersect(F.minus(cover)).size() == 0) {
                 nb = nb.minus(S.union(cover));
@@ -308,18 +386,18 @@ public class IntegerGraph {
                 Set<Integer> SS = S.union(nb);
                 SS.add(b);
 
-                Set<Integer> result = enumerate(k,cover,SS,pp, PP, F);
+                Set<Integer> result = enumerate(k,cover,SS,pp, PP, FF);
                 if(result.size() != 0)
                     return result;
             //}
-            F.add(b);
+            FF.add(b);
         }
 
 
         if(P.isEmpty())
             return new Set<>();
         Integer pp = P.pop();
-        return enumerate(k, cover, S, pp, P, F);
+        return enumerate(k, cover, S, pp, P, FF);
     }
 
     /**
@@ -448,7 +526,7 @@ public class IntegerGraph {
     }
 
     /**
-     * Get all disconnected subgraphs.
+     * Get all subgraphs induced by vertices
      * @param vertices
      * @return returns a set of vertex sets that represent disconnected subgraphs induced by vertices
      */
