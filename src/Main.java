@@ -1,11 +1,8 @@
 import com.felixullmann.graphs.IntegerGraph;
 import com.felixullmann.graphs.Set;
 
-import java.util.Arrays;
 import java.util.Comparator;
-import java.util.Iterator;
 import java.util.TreeSet;
-
 
 /*
     USED DATASETS
@@ -84,26 +81,6 @@ public class Main {
         System.out.println("Initialized Graph.");
         System.out.println(String.format("Added %s vertices and %s edges", myGraph.vertices.size(), edgecount));
 
-
-/*
-        IntegerGraph.VertexCyclingIterator vertexCyclingIterator = new IntegerGraph.VertexCyclingIterator(myGraph.vertices);
-
-        int i = 0;
-        while(vertexCyclingIterator.hasNext()) {
-            Integer next = vertexCyclingIterator.next();
-            System.out.println(next);
-
-           if(i == 4) {
-                System.out.println("lastswap: " + next);
-                vertexCyclingIterator.markSwap();
-            }
-
-            i++;
-        }
-*/
-
-
-
         long start = System.currentTimeMillis();
 
         // Optional vertex pruning
@@ -140,12 +117,10 @@ public class Main {
         }
 
         Set<Integer> currentSolution;
-        // TODO there are mulitple ways of running this. See Besprechung 5 Notes for further information
-
 
         for(IntegerGraph graph : graphs) {
             totalWeight -= graph.getSetWeight(graph.initialSolution);
-            currentSolution = graph.localSearchVertexCycling(graph.initialSolution, k_max, totalWeight);
+            currentSolution = graph.localSearch(graph.initialSolution, k_max, totalWeight);
             totalWeight += graph.getSetWeight(currentSolution);
             minimumVertexCover.addAll(currentSolution);
         }

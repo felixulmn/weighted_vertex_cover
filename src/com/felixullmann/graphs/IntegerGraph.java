@@ -174,49 +174,6 @@ public class IntegerGraph {
         });
     }
 
-    // default algorithm
-    public Set<Integer> mvc_localsearch(Set<Integer> cover, int kMax, long totalWeight) {
-
-        Set<Integer> S;
-        Stack<Integer> P;
-        Integer p = null;
-        Set<Integer> F;
-
-
-        long start = System.currentTimeMillis();
-        long current;
-
-        for(int k = 1; k <= kMax; k++) {
-            current = (System.currentTimeMillis() - start)/1000;
-            System.out.println(String.format("%5s k = %s", current, k));
-
-            for(Integer vertex : cover) {
-                S = getNeighbors(vertex).minus(cover);
-                S.add(vertex);
-                P = new Stack<>();
-                P.addAll(getNeighbors(vertex).minus(cover));
-                if(k != 1 && P.isEmpty())
-                    continue;
-                if(k != 1)
-                    p = P.pop();
-                F = getNeighbors(vertex).intersect(cover);
-                S = enumerate(k, cover, S, p, P, F);
-                if(S.size() != 0) {
-                    cover = cover.minus(S).union(S.minus(cover));
-                    current = (System.currentTimeMillis() - start)/1000;
-                    System.out.println(String.format("%5s    w = %s", current, (getSetWeight(cover) + totalWeight)));
-                    // restart the k-loop at 1
-                    k = 0;
-                    break;
-                }
-
-            }
-
-        }
-
-        return cover;
-    }
-
     // default algorithm using generateSwap call
     public Set<Integer> localSearch(Set<Integer> cover, int kMax, long totalWeight) {
         Set<Integer> S;
@@ -243,55 +200,6 @@ public class IntegerGraph {
 
         }
 
-        return cover;
-    }
-
-    // vertex cycling variant using iterator
-    public Set<Integer> localSearchVertexCycling(Set<Integer> cover, int kMax, long totalWeight) {
-        Set<Integer> S;
-        Integer vertex;
-        VertexCyclingIterator iterator = new VertexCyclingIterator(this.vertices);
-
-        int swapcount = 0;
-
-        boolean changes = false;
-
-        long start = System.currentTimeMillis();
-        long current;
-
-        for(int k = 1; k <= kMax; k++) {
-            iterator.reset();
-            changes = false;
-
-            current = (System.currentTimeMillis() - start)/1000;
-            System.out.println(String.format("%5s k = %s", current, k));
-
-            while(iterator.hasNext()) {
-                vertex = iterator.next();
-                S = generateSwap(k, vertex, cover);
-                if(S.size() != 0) {
-                    cover = cover.minus(S).union(S.minus(cover));
-                    current = (System.currentTimeMillis() - start)/1000;
-                    System.out.println(String.format("%5s    w = %s", current, (getSetWeight(cover) + totalWeight)));
-
-                    changes = true;
-
-                    iterator.markSwap();
-
-                    swapcount++;
-                    // restart the k-loop at 1
-                    if(k > 2) {
-                        k = 0;
-                        break;
-                    }
-                }
-            }
-
-            if(changes && k > 2)
-                k = 0;
-        }
-
-        System.out.println("Swaps made: " + swapcount);
         return cover;
     }
 
@@ -355,7 +263,6 @@ public class IntegerGraph {
         System.out.println("Swaps made: " + swapcount);
         return cover;
     }
-
 
     public Set<Integer> generateSwap(int k, Integer vertex, Set<Integer> cover) {
         Set<Integer> S;
@@ -581,40 +488,5 @@ public class IntegerGraph {
         }
 
         return subgraphs;
-    }
-
-    public static class VertexCyclingIterator implements Iterator<Integer> {
-
-        private Integer[] vertices;
-        private int noSwap = 0;
-        private int currentIndex = 0;
-
-        public VertexCyclingIterator(Set<Integer> vertices) {
-            this.vertices = vertices.toArray(new Integer[vertices.size()]);
-        }
-
-        public void markSwap() {
-            noSwap = 0;
-        }
-
-        public void reset() {
-            noSwap = 0;
-            currentIndex = 0;
-        }
-
-        @Override
-        public boolean hasNext() {
-            return noSwap < vertices.length;
-        }
-
-        @Override
-        public Integer next() {
-            Integer vertex = vertices[currentIndex];
-            currentIndex++;
-            noSwap++;
-            if(currentIndex == vertices.length)
-                currentIndex = 0;
-            return vertex;
-        }
     }
 }
