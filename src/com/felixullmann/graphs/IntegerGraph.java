@@ -202,7 +202,6 @@ public class IntegerGraph {
 
         for(int k = 1; k <= kMax; k++) {
             current = (System.currentTimeMillis() - start)/1000;
-            //current = 0;
             System.out.println(String.format("%5s k = %s", current, k));
 
             for(Integer vertex : cover) {
@@ -219,7 +218,6 @@ public class IntegerGraph {
                 if(S.size() != 0) {
                     cover = cover.minus(S).union(S.minus(cover));
                     current = (System.currentTimeMillis() - start)/1000;
-                    //current = 0;
                     System.out.println(String.format("%5s    w = %s", current, (getSetWeight(cover) + totalWeight)));
                     // restart the k-loop at 1
                     k = 0;
@@ -252,7 +250,6 @@ public class IntegerGraph {
 
         for(int k = 1; k <= kMax; k++) {
             current = (System.currentTimeMillis() - start)/1000;
-            //current = 0;
             System.out.println(String.format("%5s k = %s", current, k));
 
             for(Integer vertex : cover.intersect(R[k-1])) {
@@ -269,7 +266,6 @@ public class IntegerGraph {
                 if(S.size() != 0) {
                     cover = cover.minus(S).union(S.minus(cover));
                     current = (System.currentTimeMillis() - start)/1000;
-                    //current = 0;
                     System.out.println(String.format("%5s    w = %s", current, (getSetWeight(cover) + totalWeight)));
                     // update R
                         Set<Integer> frontier = getNeighbors(S);
