@@ -241,7 +241,8 @@ public class IntegerGraph {
         long start = System.currentTimeMillis();
         long current;
 
-        int maxCycling = 2;
+        int maxCycling = 3;
+        boolean change = false;
 
         Set<Integer> S;
 
@@ -269,14 +270,17 @@ public class IntegerGraph {
                     System.out.println(String.format("%5s    w = %s", current, (getSetWeight(cover) + totalWeight)));
 
                     swapcount++;
+                    change = true;
 
                     // restart the k-loop at 1
                     if(k > maxCycling) {
                         k = 0;
+                        change = false;
                         break;
                     }
 
-                } else {
+                }
+                else {
                     noSwap++;
                 }
 
@@ -291,6 +295,19 @@ public class IntegerGraph {
 
 
             }
+
+            if(k == kMax && kMax == maxCycling && change == true) {
+                change = false;
+                k = 0;
+            }
+
+/*            if(change == true && k > 1) {
+                change = false;
+                k = 0;
+            }*/
+
+
+
         }
 
         System.out.println("Swaps made: " + swapcount);
