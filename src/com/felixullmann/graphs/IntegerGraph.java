@@ -417,41 +417,118 @@ public class IntegerGraph {
         return enumerate(k, cover, S, pp, P, FF);
     }
 
-    private int enumPruningCount = 0;
+    private class IntegerPair {
+        Integer a;
+        Integer b;
 
-    private long getTopNCandidates(TreeSet<Integer> K, Integer topN) {
+        public IntegerPair(Integer a, Integer b) {
+            this.a = a;
+            this.b = b;
+        }
+    }
+
+    private long getTopNCandidates3(TreeSet<IntegerPair> V, Set<Integer> F, Set<Integer> cover, Set<Integer> S, int k, int W) {
+
+        long start = System.currentTimeMillis();
+
         int i = 0;
         long weight = 0;
-        for(Integer vertex : K.descendingSet()) {
+
+        int q = W-k+1;
+
+        Integer vertex;
+        Integer nCount;
+
+        int topN = k - S.size();
+        int maxVertices;
+        int maxVertices2;
+
+
+        for(IntegerPair p : V.descendingSet()) {
             if(i == topN)
                 break;
-            weight += weights.get(vertex);
-            i++;
+
+            vertex = p.a;
+            nCount = p.b;
+            //
+            maxVertices = nCount+q;
+            maxVertices2 = nCount+2-k;
+
+            //System.out.println(vertex);
+
+            //
+
+            if(!(maxVertices > 0) && !(maxVertices2 > 0) && cover.contains(vertex) && !F.contains(vertex) && !S.contains(vertex)) {
+                weight += weights.get(vertex);
+                i++;
+            }
         }
 
+        //System.exit(0);
+        enumPruningTime += System.currentTimeMillis() - start;
         return weight;
     }
 
-    public Set<Integer> localSearch_enumPruning(Set<Integer> cover, int kMax, long totalWeight) {
-        TreeSet<Integer> V = new TreeSet<>(Comparator.comparingInt((Integer i) -> weights.get(i)).thenComparing(Comparator.naturalOrder()));
-        V.addAll(vertices);
-        TreeSet<Integer> K = new TreeSet<>(Comparator.comparingInt((Integer i) -> weights.get(i)).thenComparing(Comparator.naturalOrder()));
+    public Set<Integer> enumerate_enumPruning3(int k, Set<Integer> cover, Set<Integer> S, Integer p, Stack<Integer> P, Set<Integer> F, TreeSet<IntegerPair> V) {
+
+        Set<Integer> s_intersect_c = S.intersect(cover);
+
+        if(S.size() > k || !isIndependent(s_intersect_c))
+            return new Set<>();
+
+        long improvement  = getSetWeight(s_intersect_c) - getSetWeight(S.minus(cover));
+
+        if(S.size() == k) {
+            if(improvement > 0)
+                return S;
+            else
+                return new Set<>();
+        }
+
+        if(improvement < 0 && improvement+getTopNCandidates3(V, F, cover, S ,k, s_intersect_c.size()) < 0) {
+            //System.out.println("Pruned swap " + S.hashCode());
+            enumPruningCount++;
+            return new Set<>();
+        }
+
+        Set<Integer> FF = (Set<Integer>) F.clone();
+        for(Integer b : getNeighbors(p).minus(S.union(FF))) {
+            Set<Integer> nb = getNeighbors(b);
+            //if(nb.intersect(F.minus(cover)).size() == 0) {
+            nb = nb.minus(S.union(cover));
+            Stack<Integer> PP = (Stack<Integer>) P.clone();
+            PP.add(p);
+            PP.addAll(nb);
+            Integer pp = PP.pop();
+
+            Set<Integer> SS = S.union(nb);
+            SS.add(b);
+
+            Set<Integer> result = enumerate(k,cover,SS,pp, PP, FF);
+            if(result.size() != 0)
+                return result;
+            //}
+            FF.add(b);
+        }
+
+
+        if(P.isEmpty())
+            return new Set<>();
+        Integer pp = P.pop();
+        return enumerate(k, cover, S, pp, P, FF);
+    }
+
+    public Set<Integer> localSearch_enumPruning2(Set<Integer> cover, int kMax, long totalWeight) {
+        TreeSet<IntegerPair> V = new TreeSet<>(Comparator.comparingInt((IntegerPair p) -> weights.get(p.a)).thenComparing((IntegerPair p) -> p.a));
+
+        for(Integer vertex : this.vertices) {
+            V.add(new IntegerPair(vertex, adjacency.get(vertex).size()));
+        }
 
         Set<Integer> S;
         Stack<Integer> P;
         Integer p = null;
         Set<Integer> F;
-/*
-        for(Integer vertex : C.descendingSet()) {
-            System.out.println(weights.get(vertex));
-        }
-        System.out.println("took " + (System.currentTimeMillis() - start) + " ms to initialize");
-
-        System.out.println();
-        System.out.println(cover.size());
-        System.out.println(C.size());
-        System.exit(0);
-*/
 
         long start = System.currentTimeMillis();
         long current;
@@ -470,10 +547,7 @@ public class IntegerGraph {
                 if(k != 1)
                     p = P.pop();
                 F = getNeighbors(vertex).intersect(cover);
-
-                K = (TreeSet<Integer>) V.clone();
-                S = enumerate_enumPruning(k, cover, S, p, P, F, K);
-
+                S = enumerate_enumPruning3(k, cover, S, p, P, F, V);
 
                 if(S.size() != 0) {
                     cover = cover.minus(S).union(S.minus(cover));
@@ -488,10 +562,49 @@ public class IntegerGraph {
 
         }
         System.out.println("Enum applied " + enumPruningCount + " times.");
+        System.out.println("Pruning time " + enumPruningTime + " ms.");
         return cover;
     }
 
-    public Set<Integer> enumerate_enumPruning(int k, Set<Integer> cover, Set<Integer> S, Integer p, Stack<Integer> P, Set<Integer> F, TreeSet<Integer> K) {
+    private long getTopNCandidates2(TreeSet<IntegerPair> V, Set<Integer> F, Set<Integer> cover, Set<Integer> S, Integer k) {
+
+        long start = System.currentTimeMillis();
+
+        int i = 0;
+        long weight = 0;
+
+        Integer vertex;
+        Integer nCount;
+
+        int topN = k - S.size();
+        int maxVertices;
+
+
+        for(IntegerPair p : V.descendingSet()) {
+            if(i == topN)
+                break;
+
+            vertex = p.a;
+            nCount = p.b;
+            maxVertices = nCount+2-k;
+            //maxVertices = -1;
+
+            //System.out.println(vertex);
+
+            //
+
+            if(!(maxVertices > 0) && cover.contains(vertex) && !F.contains(vertex) && !S.contains(vertex)) {
+                weight += weights.get(vertex);
+                i++;
+            }
+        }
+
+        //System.exit(0);
+        enumPruningTime += System.currentTimeMillis() - start;
+        return weight;
+    }
+
+    public Set<Integer> enumerate_enumPruning2(int k, Set<Integer> cover, Set<Integer> S, Integer p, Stack<Integer> P, Set<Integer> F, TreeSet<IntegerPair> V) {
 
         Set<Integer> s_intersect_c = S.intersect(cover);
 
@@ -507,14 +620,134 @@ public class IntegerGraph {
                 return new Set<>();
         }
 
-        if(K.size() == vertices.size())
-            K.removeAll(cover);
-
-        if(improvement < 0 && improvement+getTopNCandidates(K, k-S.size()) < 0) {
+        if(improvement < 0 && improvement+getTopNCandidates2(V, F, cover, S ,k) < 0) {
+            //System.out.println("Pruned swap " + S.hashCode());
             enumPruningCount++;
             return new Set<>();
         }
 
+        Set<Integer> FF = (Set<Integer>) F.clone();
+        for(Integer b : getNeighbors(p).minus(S.union(FF))) {
+            Set<Integer> nb = getNeighbors(b);
+            //if(nb.intersect(F.minus(cover)).size() == 0) {
+            nb = nb.minus(S.union(cover));
+            Stack<Integer> PP = (Stack<Integer>) P.clone();
+            PP.add(p);
+            PP.addAll(nb);
+            Integer pp = PP.pop();
+
+            Set<Integer> SS = S.union(nb);
+            SS.add(b);
+
+            Set<Integer> result = enumerate(k,cover,SS,pp, PP, FF);
+            if(result.size() != 0)
+                return result;
+            //}
+            FF.add(b);
+        }
+
+
+        if(P.isEmpty())
+            return new Set<>();
+        Integer pp = P.pop();
+        return enumerate(k, cover, S, pp, P, FF);
+    }
+
+    public Set<Integer> localSearch_enumPruning(Set<Integer> cover, int kMax, long totalWeight) {
+        TreeSet<Integer> V = new TreeSet<>(Comparator.comparingInt((Integer i) -> weights.get(i)).thenComparing(Comparator.naturalOrder()));
+        //TreeSet<IntegerPair> V = new TreeSet<>(Comparator.comparingInt((IntegerPair p) -> weights.get(p.a)).thenComparing((IntegerPair p) -> p.a));
+
+        V.addAll(vertices);
+
+        Set<Integer> S;
+        Stack<Integer> P;
+        Integer p = null;
+        Set<Integer> F;
+
+        long start = System.currentTimeMillis();
+        long current;
+
+        for(int k = 1; k <= kMax; k++) {
+            current = (System.currentTimeMillis() - start)/1000;
+            System.out.println(String.format("%5s k = %s", current, k));
+
+            for(Integer vertex : cover) {
+                S = getNeighbors(vertex).minus(cover);
+                S.add(vertex);
+                P = new Stack<>();
+                P.addAll(getNeighbors(vertex).minus(cover));
+                if(k != 1 && P.isEmpty())
+                    continue;
+                if(k != 1)
+                    p = P.pop();
+                F = getNeighbors(vertex).intersect(cover);
+                S = enumerate_enumPruning(k, cover, S, p, P, F, V);
+
+                if(S.size() != 0) {
+                    cover = cover.minus(S).union(S.minus(cover));
+                    current = (System.currentTimeMillis() - start)/1000;
+                    System.out.println(String.format("%5s    w = %s", current, (getSetWeight(cover) + totalWeight)));
+                    // restart the k-loop at 1
+                    k = 0;
+                    break;
+                }
+
+            }
+
+        }
+
+        System.out.println("Enum applied " + enumPruningCount + " times.");
+        System.out.println("Pruning time " + enumPruningTime + " ms.");
+        return cover;
+    }
+
+    private long getTopNCandidates(TreeSet<Integer> V, Set<Integer> F, Set<Integer> cover, Set<Integer> S, Integer topN) {
+
+        long start = System.currentTimeMillis();
+
+        int i = 0;
+        long weight = 0;
+        for(Integer vertex : V.descendingSet()) {
+            if(i == topN)
+                break;
+
+            //System.out.println(vertex);
+
+            if(cover.contains(vertex) && !F.contains(vertex) && !S.contains(vertex)) {
+                weight += weights.get(vertex);
+                i++;
+            }
+
+        }
+
+        //System.exit(0);
+        enumPruningTime += System.currentTimeMillis() - start;
+        return weight;
+    }
+    private int enumPruningCount = 0;
+    private int enumPruningTime = 0;
+
+    public Set<Integer> enumerate_enumPruning(int k, Set<Integer> cover, Set<Integer> S, Integer p, Stack<Integer> P, Set<Integer> F, TreeSet<Integer> V) {
+
+        Set<Integer> s_intersect_c = S.intersect(cover);
+
+        if(S.size() > k || !isIndependent(s_intersect_c))
+            return new Set<>();
+
+        long improvement  = getSetWeight(s_intersect_c) - getSetWeight(S.minus(cover));
+
+        if(S.size() == k) {
+            if(improvement > 0)
+                return S;
+            else
+                return new Set<>();
+        }
+
+        if(improvement < 0 && improvement+getTopNCandidates(V, F, cover, S,k-S.size()) < 0) {
+            //System.out.println("Pruned swap " + S.hashCode());
+            enumPruningCount++;
+            return new Set<>();
+        }
 
         Set<Integer> FF = (Set<Integer>) F.clone();
         for(Integer b : getNeighbors(p).minus(S.union(FF))) {
