@@ -2,3 +2,5 @@ out/
 .idea/
 weighted_vertex_cover.iml
 datasets/
+obj/
+.vscode/
