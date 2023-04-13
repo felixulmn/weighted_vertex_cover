@@ -23,79 +23,122 @@ using namespace opt;
 namespace opt
 {
 
-// Mersenne Twister 19937 generator
+	// Mersenne Twister 19937 generator
 
-mt19937 generator;
+	mt19937 generator;
 
 
-/************************************************************
- *
- * Creates a graph based on the given specification. Returns
- * a pointer to the allocated graph; the graph must be 
- * deallocated elsewhere.
- *
- ************************************************************/
+	/************************************************************
+	 *
+	 * Creates a graph based on the given specification. Returns
+	 * a pointer to the allocated graph; the graph must be
+	 * deallocated elsewhere.
+	 *
+	 ************************************************************/
 
-Graph *readInstance (const string &filename, bool complement)
-{
-	int m = -1; // number of vertices and edges announced
-	int m_count = 0; // number of edges actually counted
-	int linenum = 0; // number of readed lines
-	char buffer[256];
-	ifstream input(filename.c_str());
-	Graph *graph = NULL;
+	Graph *readInstance(const string &filename, bool complement)
+	{
+		int m = -1; // number of edges announced
+		int n = -1;			 // number of vertices announced
+		int m_count = 0; // number of edges actually counted
+		int linenum = 0; // number of lines read
+		char buffer[256];
+		ifstream input((filename + "conflict_graph.txt").c_str());
+		ifstream weights((filename + "node_weights.txt").c_str());
+		Graph *graph = NULL;
 
 	if (!input) {
-		throw InitError("error opening the input file: " + filename + "\n");
-	}
+			throw InitError("error opening the input file: " + filename + "\n");
+		}
 
 	while (input.getline(buffer, 256)) {
-		linenum++;
+			linenum++;
 
-		int v1, v2;
+			int v1, v2;
 		if (sscanf(buffer, "%d %d", &v1, &v2) != 2) {
-			input.close();
-			throw InitError("syntax error in line " + std::to_string(linenum) + "\n");
-		}
+				input.close();
+				throw InitError("syntax error in line " + std::to_string(linenum) + "\n");
+			}
 
 		if (linenum == 1) { // read the number of vertices and edges
 			if (v1 < 0 || v2 < 0) {
-				input.close();
-				throw InitError("syntax error in line " + std::to_string(linenum) +
-				                ". The number of edges and vertices must not be negative.\n");
-			}
-			m = v2;
-			graph = new Graph(v1, v2);
+					input.close();
+					throw InitError("syntax error in line " + std::to_string(linenum) +
+													". The number of edges and vertices must not be negative.\n");
+				}
+				n = v1;
+				m = v2;
+				graph = new Graph(v1, v2);
 			if (complement) {
 				for (int idx1 = 0; idx1 < v1; idx1++) {
 					for (int idx2 = idx1 + 1; idx2 < v1; idx2++) {
-						graph->addEdge(idx1, idx2);
+							graph->addEdge(idx1, idx2);
+						}
 					}
 				}
-			}
 		} else { // read an edge
 			if (v1 < 0 || v2 < 0) {
-				input.close();
-				throw InitError("syntax error in line " + std::to_string(linenum) +
-				                ". Vertices label must not be negative.\n");
-			}
+					input.close();
+					throw InitError("syntax error in line " + std::to_string(linenum) +
+													". Vertices label must not be negative.\n");
+				}
 			if (!complement) {
-				graph->addEdge(v1 - 1, v2 - 1);
+					graph->addEdge(v1 - 1, v2 - 1);
 			} else {
-				graph->removeEdge(v1 - 1, v2 - 1);
+					graph->removeEdge(v1 - 1, v2 - 1);
+				}
+				m_count++;
 			}
-			m_count++;
 		}
-	}
 
-	input.close();
+		input.close();
 
-	if (m_count != m) {
-		throw InitError("the number of edges announced is not equal to the number of edges read.\n");
-	}
+		// read weights
+		int linenum2 = 0;
+		while (weights.getline(buffer, 256))
+		{
+			linenum2++;
+			int vertex, weight;
+			if (sscanf(buffer, "%d %d", &vertex, &weight) != 2)
+			{
+				weights.close();
+				throw InitError("syntax error in line " + std::to_string(linenum2) + "\n");
+			}
+			graph->addWeight(vertex-1, weight);
+		}
 
-	return graph;
-} // Graph *readInstance (const string &filename)
+		weights.close();
+
+		if (m_count != m)
+		{
+			throw InitError("the number of edges announced is not equal to the number of edges read.\n");
+		}
+
+		if (linenum2 != n)
+		{
+			throw InitError("the number of vertices announced is not equal to the number of weights read.\n");
+		}
+
+		// cout << "node weights \n" << endl;
+
+		// for(int i = 1; i <= n; i++)
+		// {
+		// 	cout << i << " " <<  graph->weight(i) << endl;
+		// }
+
+		// cout << "adjacency list \n" << endl;
+
+		// for(int i = 1; i <= m; i++) {
+		// 	string edgeStr = "";
+		// 	vector<int> vec = graph->adj_l(i);
+		// 	for (long unsigned int i = 0; i < graph->adj_l(i).size(); i++) {
+		// 		edgeStr += std::to_string(vec[i]) + " ";
+		// 	}
+		// 	cout << i << " " << edgeStr << endl;
+		// }
+
+		return graph;
+	} // Graph *readInstance (const string &filename)
 
 } // namespace opt
 
@@ -202,7 +245,7 @@ int main(int argc, char *argv[])
 			}
 		}
 
-exit:
+	exit:
 		proc_timer.pause();
 		assert(best_s.integrityCheck());
 
@@ -211,7 +254,7 @@ exit:
 			cout << "- size: " << best_s.size() << "\n";
 			cout << "- solution: ";
 			for(int v : best_s.i_set()) {
-				cout << v << " ";
+				cout << (v+1) << " ";
 			}
 			cout << "\n- input time: " << input_timer.getTime() << "\n";
 			cout << "- iterations to find the best: " << target_iterations << "\n";

@@ -16,63 +16,65 @@
 
 namespace opt {
 
-class Graph
-{
+	class Graph
+	{
 
-public:
+	public:
 
-	// return the number of edges
+		// return the number of edges
 
-	int m() const { return m_; }
+		int m() const { return m_; }
 
-	// return the number of vertices
+		// return the number of vertices
 
-	int n() const { return n_; }
+		int n() const { return n_; }
 
-	// return the weight of vertice v
+		// return the weight of vertice v
 
-	int weight(const int v) const { return weights_[v]; }
+		int weight(const int v) const { return weights_[v]; }
 
-	// return the adjency list of vertex i
+		// return the adjency list of vertex i
 
 	const std::vector<int>& adj_l(const int i) const
-	{
-		assert(i < n_);
+		{
+			assert(i < n_);
 
-		return adj_l_[i];
-	}
+			return adj_l_[i];
+		}
 
-	Graph(const int n, const int m);
+		Graph(const int n, const int m);
 
-	void addEdge(const int i, const int j);
+		void addEdge(const int i, const int j);
 
-	void removeEdge(const int i, const int j);
+		void removeEdge(const int i, const int j);
 
-	// sort the adjacency lists
+		void addWeight(const int vertex, const int weight);
 
-	void sort();
+		// sort the adjacency lists
 
-private:
+		void sort();
 
-	std::vector<int> weights_; // vertices weight
+	private:
 
-	int n_; // number of vertices
+		std::vector<int> weights_; // vertices weight
 
-	int m_; // number of edges
+		int n_; // number of vertices
+
+		int m_; // number of edges
 
 	std::vector< std::vector<int> > adj_l_; // adjaceny list
 
-	void addNeighbor(const int i, const int j)
-	{
-		adj_l_[i].push_back(j);
-	}
+		void addNeighbor(const int i, const int j)
+		{
+			adj_l_[i].push_back(j);
+		}
 
-	void removeNeighbor(const int i, const int j) 
-	{		
-		adj_l_[i].erase(std::remove(adj_l_[i].begin(), adj_l_[i].end(), j), adj_l_[i].end());
-	}
+		void removeNeighbor(const int i, const int j)
+		{
+			adj_l_[i].erase(std::remove(adj_l_[i].begin(), adj_l_[i].end(), j), adj_l_[i].end());
+		}
 
-}; // class Graph
+	}; // class Graph
 
 } // namespace opt
 

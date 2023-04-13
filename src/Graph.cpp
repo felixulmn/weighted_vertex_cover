@@ -15,9 +15,9 @@ Graph::Graph(const int n, const int m) :
 	m_(m),
 	adj_l_(n, std::vector<int>())
 {
-	for(int idx = 0; idx < n; idx++) {
-		weights_[idx] = (idx + 1) % 200 + 1;
-	}
+	// for(int idx = 0; idx < n; idx++) {
+	// 	weights_[idx] = (idx + 1) % 200 + 1;
+	// }
 }
 
 void Graph::removeEdge(const int i, const int j)
@@ -34,6 +34,11 @@ void Graph::addEdge(const int i, const int j)
 
 	addNeighbor(i, j);
 	addNeighbor(j, i);
+}
+
+void Graph::addWeight(const int vertex, const int weight)
+{
+	weights_[vertex] = weight;
 }
 
 void Graph::sort()
