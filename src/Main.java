@@ -21,6 +21,14 @@ public class Main {
         boolean cliquePruning = false;
         boolean splitSubgraphs = false;
 
+        // variable for selecting algorithm
+        // 0 - no optimization          = -aV --alg-vanilla
+        // 1 - eager swaps              = -aE --alg-eagerSwaps
+        // 2 - candidate selection      = -aC --alg-candidateSelection
+        // 3 - improvement upper bound  = -aB --alg-improvementUpperBound
+        int algorithm = 0;
+
+
         // TODO might add argument for --help flag that outputs verbose description for flags and positional arguments
 
         for (int i = 0; i < args.length; i++) {
@@ -42,6 +50,18 @@ public class Main {
                 case "-s":
                 case "--split-subgraphs":
                     splitSubgraphs = true;
+                    break;
+                case "-aE":
+                case "--alg-eagerSwaps":
+                    algorithm = 1;
+                    break;
+                case "-aC":
+                case "--alg-candidateSelection":
+                    algorithm = 2;
+                    break;
+                case "-aB":
+                case "--alg-improvementUpperBound":
+                    algorithm = 3;
                     break;
                 default:
                     if (inputFileName == null) {
@@ -79,8 +99,8 @@ public class Main {
             edgecount += neighbors.size();
         }
         edgecount /= 2;
-        System.out.println("Initialized Graph.");
-        System.out.println(String.format("Added %s vertices and %s edges", myGraph.vertices.size(), edgecount));
+/*        System.out.println("Initialized Graph.");
+        System.out.println(String.format("Added %s vertices and %s edges", myGraph.vertices.size(), edgecount));*/
 
         long start = System.currentTimeMillis();
 
@@ -117,20 +137,31 @@ public class Main {
             totalWeight += graph.getSetWeight(graph.initialSolution);
         }
 
-        Set<Integer> currentSolution;
+        Set<Integer> currentSolution = new Set<>();
 
         for(IntegerGraph graph : graphs) {
             totalWeight -= graph.getSetWeight(graph.initialSolution);
-            currentSolution = graph.localSearch_enumPruning(graph.initialSolution, k_max, totalWeight);
+            if(algorithm == 0)
+                currentSolution = graph.localSearch(graph.initialSolution, k_max, totalWeight);
+            else if (algorithm == 1)
+                currentSolution = graph.localSearch_cycling(graph.initialSolution, k_max, totalWeight);
+            else if (algorithm == 2)
+                currentSolution = graph.localSearch_pruning(graph.initialSolution, k_max, totalWeight);
+            else if (algorithm == 3)
+                currentSolution = graph.localSearch_imprUpperBound(graph.initialSolution, k_max, totalWeight);
+
+
             totalWeight += graph.getSetWeight(currentSolution);
             minimumVertexCover.addAll(currentSolution);
         }
 
+/*
         long time = (System.currentTimeMillis() - start);
         System.out.println("Finished Running in " + time + " milliseconds (" + time/1000 + " seconds.)");
         System.out.println("Solution weight: " + myGraph.getSetWeight(minimumVertexCover));
         System.out.println("Solution is cover: " + myGraph.isVertexCover(minimumVertexCover));
 
+*/
 
     }
 }
