@@ -189,7 +189,13 @@ public class IntegerGraph {
         });
     }
 
-    // default algorithm using generateSwap call
+    /**
+     * local search algorithm for finding kMax-optimal minimum weighted vertex cover
+     * @param cover an inital vertex cover (may be all vertices of the graph)
+     * @param kMax the maximum swap size
+     * @param totalWeight parameter used to calculate current solution weight
+     * @return returns k-max optimal mininum weighted vertex cover
+     */
     public Set<Integer> localSearch(Set<Integer> cover, int kMax, long totalWeight) {
         Set<Integer> S;
 
@@ -197,15 +203,17 @@ public class IntegerGraph {
         long current;
 
         for(int k = 1; k <= kMax; k++) {
-            current = (System.currentTimeMillis() - start)/1000;
-            System.out.println(String.format("%5s k = %s", current, k));
+/*            current = (System.currentTimeMillis() - start)/1000;
+            System.out.println(String.format("%5s k = %s", current, k));*/
 
             for(Integer vertex : cover) {
                 S = generateSwap(k, vertex, cover);
                 if(S.size() != 0) {
                     cover = cover.minus(S).union(S.minus(cover));
-                    current = (System.currentTimeMillis() - start)/1000;
-                    System.out.println(String.format("%5s    w = %s", current, (getSetWeight(cover) + totalWeight)));
+                    current = (System.currentTimeMillis() - start);
+                    // System.out.println(String.format("%5s    w = %s", current, (getSetWeight(cover) + totalWeight)));
+                    printStats((getSetWeight(cover) + totalWeight), k, current);
+
                     // restart the k-loop at 1
                     k = 0;
                     break;
@@ -252,8 +260,8 @@ public class IntegerGraph {
         int swapcount = 0;
 
         for(int k = 1; k <= kMax; k++) {
-            current = (System.currentTimeMillis() - start)/1000;
-            System.out.println(String.format("%5s k = %s", current, k));
+/*            current = (System.currentTimeMillis() - start)/1000;
+            System.out.println(String.format("%5s k = %s", current, k));*/
 
             int noSwap = 0;
 
@@ -266,8 +274,9 @@ public class IntegerGraph {
                     noSwap = 0;
 
                     cover = cover.minus(S).union(S.minus(cover));
-                    current = (System.currentTimeMillis() - start)/1000;
-                    System.out.println(String.format("%5s    w = %s", current, (getSetWeight(cover) + totalWeight)));
+                    current = (System.currentTimeMillis() - start);
+                    // System.out.println(String.format("%5s    w = %s", current, (getSetWeight(cover) + totalWeight)));
+                    printStats((getSetWeight(cover) + totalWeight), k, current);
 
                     swapcount++;
                     change = true;
@@ -333,8 +342,8 @@ public class IntegerGraph {
         }
 
         for(int k = 1; k <= kMax; k++) {
-            current = (System.currentTimeMillis() - start)/1000;
-            System.out.println(String.format("%5s k = %s", current, k));
+/*            current = (System.currentTimeMillis() - start)/1000;
+            System.out.println(String.format("%5s k = %s", current, k));*/
 
             for(Integer vertex : cover.intersect(R[k-1])) {
                 S = getNeighbors(vertex).minus(cover);
@@ -349,8 +358,9 @@ public class IntegerGraph {
                 S = enumerate(k, cover, S, p, P, F);
                 if(S.size() != 0) {
                     cover = cover.minus(S).union(S.minus(cover));
-                    current = (System.currentTimeMillis() - start)/1000;
-                    System.out.println(String.format("%5s    w = %s", current, (getSetWeight(cover) + totalWeight)));
+                    current = (System.currentTimeMillis() - start);
+/*                    System.out.println(String.format("%5s    w = %s", current, (getSetWeight(cover) + totalWeight)));*/
+                    printStats((getSetWeight(cover) + totalWeight), k, current);
                     // update R
                     Set<Integer> frontier = getNeighbors(S);
                     Set<Integer> M = S.union(frontier);
@@ -417,248 +427,28 @@ public class IntegerGraph {
         return enumerate(k, cover, S, pp, P, FF);
     }
 
-    private class IntegerPair {
-        Integer a;
-        Integer b;
+    private int[] independentSetNeighbors;
+    private TreeSet<Integer> V;
 
-        public IntegerPair(Integer a, Integer b) {
-            this.a = a;
-            this.b = b;
-        }
-    }
-
-    private long getTopNCandidates3(TreeSet<IntegerPair> V, Set<Integer> F, Set<Integer> cover, Set<Integer> S, int k, int W) {
-
-        long start = System.currentTimeMillis();
-
-        int i = 0;
-        long weight = 0;
-
-        int q = W-k+1;
-
-        Integer vertex;
-        Integer nCount;
-
-        int topN = k - S.size();
-        int maxVertices;
-        int maxVertices2;
-
-
-        for(IntegerPair p : V.descendingSet()) {
-            if(i == topN)
-                break;
-
-            vertex = p.a;
-            nCount = p.b;
-            //
-            maxVertices = nCount+q;
-            maxVertices2 = nCount+2-k;
-
-            //System.out.println(vertex);
-
-            //
-
-            if(!(maxVertices > 0) && !(maxVertices2 > 0) && cover.contains(vertex) && !F.contains(vertex) && !S.contains(vertex)) {
-                weight += weights.get(vertex);
-                i++;
-            }
-        }
-
-        //System.exit(0);
-        enumPruningTime += System.currentTimeMillis() - start;
-        return weight;
-    }
-
-    public Set<Integer> enumerate_enumPruning3(int k, Set<Integer> cover, Set<Integer> S, Integer p, Stack<Integer> P, Set<Integer> F, TreeSet<IntegerPair> V) {
-
-        Set<Integer> s_intersect_c = S.intersect(cover);
-
-        if(S.size() > k || !isIndependent(s_intersect_c))
-            return new Set<>();
-
-        long improvement  = getSetWeight(s_intersect_c) - getSetWeight(S.minus(cover));
-
-        if(S.size() == k) {
-            if(improvement > 0)
-                return S;
-            else
-                return new Set<>();
-        }
-
-        if(improvement < 0 && improvement+getTopNCandidates3(V, F, cover, S ,k, s_intersect_c.size()) < 0) {
-            //System.out.println("Pruned swap " + S.hashCode());
-            enumPruningCount++;
-            return new Set<>();
-        }
-
-        Set<Integer> FF = (Set<Integer>) F.clone();
-        for(Integer b : getNeighbors(p).minus(S.union(FF))) {
-            Set<Integer> nb = getNeighbors(b);
-            //if(nb.intersect(F.minus(cover)).size() == 0) {
-            nb = nb.minus(S.union(cover));
-            Stack<Integer> PP = (Stack<Integer>) P.clone();
-            PP.add(p);
-            PP.addAll(nb);
-            Integer pp = PP.pop();
-
-            Set<Integer> SS = S.union(nb);
-            SS.add(b);
-
-            Set<Integer> result = enumerate(k,cover,SS,pp, PP, FF);
-            if(result.size() != 0)
-                return result;
-            //}
-            FF.add(b);
-        }
-
-
-        if(P.isEmpty())
-            return new Set<>();
-        Integer pp = P.pop();
-        return enumerate(k, cover, S, pp, P, FF);
-    }
-
-    public Set<Integer> localSearch_enumPruning2(Set<Integer> cover, int kMax, long totalWeight) {
-        TreeSet<IntegerPair> V = new TreeSet<>(Comparator.comparingInt((IntegerPair p) -> weights.get(p.a)).thenComparing((IntegerPair p) -> p.a));
-
-        for(Integer vertex : this.vertices) {
-            V.add(new IntegerPair(vertex, adjacency.get(vertex).size()));
-        }
-
-        Set<Integer> S;
-        Stack<Integer> P;
-        Integer p = null;
-        Set<Integer> F;
-
-        long start = System.currentTimeMillis();
-        long current;
-
-        for(int k = 1; k <= kMax; k++) {
-            current = (System.currentTimeMillis() - start)/1000;
-            System.out.println(String.format("%5s k = %s", current, k));
-
-            for(Integer vertex : cover) {
-                S = getNeighbors(vertex).minus(cover);
-                S.add(vertex);
-                P = new Stack<>();
-                P.addAll(getNeighbors(vertex).minus(cover));
-                if(k != 1 && P.isEmpty())
-                    continue;
-                if(k != 1)
-                    p = P.pop();
-                F = getNeighbors(vertex).intersect(cover);
-                S = enumerate_enumPruning3(k, cover, S, p, P, F, V);
-
-                if(S.size() != 0) {
-                    cover = cover.minus(S).union(S.minus(cover));
-                    current = (System.currentTimeMillis() - start)/1000;
-                    System.out.println(String.format("%5s    w = %s", current, (getSetWeight(cover) + totalWeight)));
-                    // restart the k-loop at 1
-                    k = 0;
-                    break;
-                }
-
-            }
-
-        }
-        System.out.println("Enum applied " + enumPruningCount + " times.");
-        System.out.println("Pruning time " + enumPruningTime + " ms.");
-        return cover;
-    }
-
-    private long getTopNCandidates2(TreeSet<IntegerPair> V, Set<Integer> F, Set<Integer> cover, Set<Integer> S, Integer k) {
-
-        long start = System.currentTimeMillis();
-
-        int i = 0;
-        long weight = 0;
-
-        Integer vertex;
-        Integer nCount;
-
-        int topN = k - S.size();
-        int maxVertices;
-
-
-        for(IntegerPair p : V.descendingSet()) {
-            if(i == topN)
-                break;
-
-            vertex = p.a;
-            nCount = p.b;
-            maxVertices = nCount+2-k;
-            //maxVertices = -1;
-
-            //System.out.println(vertex);
-
-            //
-
-            if(!(maxVertices > 0) && cover.contains(vertex) && !F.contains(vertex) && !S.contains(vertex)) {
-                weight += weights.get(vertex);
-                i++;
-            }
-        }
-
-        //System.exit(0);
-        enumPruningTime += System.currentTimeMillis() - start;
-        return weight;
-    }
-
-    public Set<Integer> enumerate_enumPruning2(int k, Set<Integer> cover, Set<Integer> S, Integer p, Stack<Integer> P, Set<Integer> F, TreeSet<IntegerPair> V) {
-
-        Set<Integer> s_intersect_c = S.intersect(cover);
-
-        if(S.size() > k || !isIndependent(s_intersect_c))
-            return new Set<>();
-
-        long improvement  = getSetWeight(s_intersect_c) - getSetWeight(S.minus(cover));
-
-        if(S.size() == k) {
-            if(improvement > 0)
-                return S;
-            else
-                return new Set<>();
-        }
-
-        if(improvement < 0 && improvement+getTopNCandidates2(V, F, cover, S ,k) < 0) {
-            //System.out.println("Pruned swap " + S.hashCode());
-            enumPruningCount++;
-            return new Set<>();
-        }
-
-        Set<Integer> FF = (Set<Integer>) F.clone();
-        for(Integer b : getNeighbors(p).minus(S.union(FF))) {
-            Set<Integer> nb = getNeighbors(b);
-            //if(nb.intersect(F.minus(cover)).size() == 0) {
-            nb = nb.minus(S.union(cover));
-            Stack<Integer> PP = (Stack<Integer>) P.clone();
-            PP.add(p);
-            PP.addAll(nb);
-            Integer pp = PP.pop();
-
-            Set<Integer> SS = S.union(nb);
-            SS.add(b);
-
-            Set<Integer> result = enumerate(k,cover,SS,pp, PP, FF);
-            if(result.size() != 0)
-                return result;
-            //}
-            FF.add(b);
-        }
-
-
-        if(P.isEmpty())
-            return new Set<>();
-        Integer pp = P.pop();
-        return enumerate(k, cover, S, pp, P, FF);
-    }
-
-    public Set<Integer> localSearch_enumPruning(Set<Integer> cover, int kMax, long totalWeight) {
-        TreeSet<Integer> V = new TreeSet<>(Comparator.comparingInt((Integer i) -> weights.get(i)).thenComparing(Comparator.naturalOrder()));
-        //TreeSet<IntegerPair> V = new TreeSet<>(Comparator.comparingInt((IntegerPair p) -> weights.get(p.a)).thenComparing((IntegerPair p) -> p.a));
-
+    /**
+     * optimized version of localSearch using "Improvement Upper Bound" rule
+     * @param cover an inital vertex cover (may be all vertices of the graph)
+     * @param kMax the maximum swap size
+     * @param totalWeight
+     * @return returns k-max optimal mininum weighted vertex cover
+     */
+    public Set<Integer> localSearch_imprUpperBound(Set<Integer> cover, int kMax, long totalWeight) {
+        V = new TreeSet<>(Comparator.comparingInt((Integer i) -> weights.get(i)).thenComparing(Comparator.naturalOrder()));
         V.addAll(vertices);
 
+        independentSetNeighbors = new int[vertices.size()];
+
+        if(vertices.minus(cover).size() != 0) {
+            for (Integer vertex : this.vertices) {
+                independentSetNeighbors[vertex - 1] = adjacency.get(vertex).minus(cover).size();
+            }
+        }
+
         Set<Integer> S;
         Stack<Integer> P;
         Integer p = null;
@@ -668,8 +458,8 @@ public class IntegerGraph {
         long current;
 
         for(int k = 1; k <= kMax; k++) {
-            current = (System.currentTimeMillis() - start)/1000;
-            System.out.println(String.format("%5s k = %s", current, k));
+/*            current = (System.currentTimeMillis() - start)/1000;
+            System.out.println(String.format("%5s k = %s", current, k));*/
 
             for(Integer vertex : cover) {
                 S = getNeighbors(vertex).minus(cover);
@@ -681,12 +471,25 @@ public class IntegerGraph {
                 if(k != 1)
                     p = P.pop();
                 F = getNeighbors(vertex).intersect(cover);
-                S = enumerate_enumPruning(k, cover, S, p, P, F, V);
+                S = enumerate_imprUpperBound(k, cover, S, p, P, F);
 
                 if(S.size() != 0) {
+                    // execute swap
                     cover = cover.minus(S).union(S.minus(cover));
-                    current = (System.currentTimeMillis() - start)/1000;
-                    System.out.println(String.format("%5s    w = %s", current, (getSetWeight(cover) + totalWeight)));
+
+                    current = (System.currentTimeMillis() - start);
+/*                    System.out.println(String.format("%5s    w = %s", current, (getSetWeight(cover) + totalWeight)));*/
+                    printStats((getSetWeight(cover) + totalWeight), k, current);
+
+                    long starts = System.nanoTime();
+                    // recalculate independent set neighbors
+                    for(Integer v : S.union(getNeighbors(S))) {
+                        independentSetNeighbors[v-1] = adjacency.get(v).minus(cover).size();
+                    }
+                    enumPruningTime += System.nanoTime()-starts;
+
+                    //System.out.println(Arrays.toString(independentSetNeighbors));
+
                     // restart the k-loop at 1
                     k = 0;
                     break;
@@ -695,15 +498,79 @@ public class IntegerGraph {
             }
 
         }
-
         System.out.println("Enum applied " + enumPruningCount + " times.");
         System.out.println("Pruning time " + enumPruningTime + " ms.");
         return cover;
     }
 
-    private long getTopNCandidates(TreeSet<Integer> V, Set<Integer> F, Set<Integer> cover, Set<Integer> S, Integer topN) {
+    public Set<Integer> enumerate_imprUpperBound(int k, Set<Integer> cover, Set<Integer> S, Integer p, Stack<Integer> P, Set<Integer> F) {
 
-        long start = System.currentTimeMillis();
+        Set<Integer> s_intersect_c = S.intersect(cover);
+
+        if(S.size() > k || !isIndependent(s_intersect_c))
+            return new Set<>();
+
+        long improvement  = getSetWeight(s_intersect_c) - getSetWeight(S.minus(cover));
+
+        if(S.size() == k) {
+            if(improvement > 0)
+                return S;
+            else
+                return new Set<>();
+        }
+
+        // improvement upper bound check
+        long start = System.nanoTime();
+
+/*        Set<Integer> pP = new Set<>();
+        pP.add(p);
+        pP.addAll(P);
+        if(improvement < 0 && improvement+getTopNCandidates2(F, cover, S,s_intersect_c.size(), k, getNeighbors(pP)) < 0) {
+            enumPruningCount++;
+            return new Set<>();
+        }*/
+
+        if(improvement < 0 && improvement+getTopNCandidates(F, cover, S,s_intersect_c.size(), k) < 0) {
+            enumPruningCount++;
+            return new Set<>();
+        }
+
+        enumPruningTime += System.nanoTime() - start;
+        // end check
+
+        Set<Integer> FF = (Set<Integer>) F.clone();
+        for(Integer b : getNeighbors(p).minus(S.union(FF))) {
+            Set<Integer> nb = getNeighbors(b);
+            //if(nb.intersect(F.minus(cover)).size() == 0) {
+            nb = nb.minus(S.union(cover));
+            Stack<Integer> PP = (Stack<Integer>) P.clone();
+            PP.add(p);
+            PP.addAll(nb);
+            Integer pp = PP.pop();
+
+            Set<Integer> SS = S.union(nb);
+            SS.add(b);
+
+            Set<Integer> result = enumerate(k,cover,SS,pp, PP, FF);
+            if(result.size() != 0)
+                return result;
+            //}
+            FF.add(b);
+        }
+
+
+        if(P.isEmpty())
+            return new Set<>();
+        Integer pp = P.pop();
+        return enumerate(k, cover, S, pp, P, FF);
+    }
+
+    private int enumPruningCount = 0;
+    private long enumPruningTime = 0;
+
+    private long getTopNCandidates(Set<Integer> F, Set<Integer> cover, Set<Integer> S, int c, int k) {
+        int topN = k - S.size();
+        int maxN = k - c;
 
         int i = 0;
         long weight = 0;
@@ -711,69 +578,47 @@ public class IntegerGraph {
             if(i == topN)
                 break;
 
-            //System.out.println(vertex);
-
-            if(cover.contains(vertex) && !F.contains(vertex) && !S.contains(vertex)) {
+            if(cover.contains(vertex) && !F.contains(vertex) && !S.contains(vertex) && independentSetNeighbors[vertex-1] < maxN) { // ===  <= c+1
                 weight += weights.get(vertex);
                 i++;
             }
 
         }
 
-        //System.exit(0);
-        enumPruningTime += System.currentTimeMillis() - start;
         return weight;
     }
-    private int enumPruningCount = 0;
-    private int enumPruningTime = 0;
 
-    public Set<Integer> enumerate_enumPruning(int k, Set<Integer> cover, Set<Integer> S, Integer p, Stack<Integer> P, Set<Integer> F, TreeSet<Integer> V) {
+    private long getTopNCandidates2(Set<Integer> F, Set<Integer> cover, Set<Integer> S, int c, int k, Set<Integer> NP) {
+        // we need at least one neighbor of P union p (NP)
+        int topN = k - S.size();
+        int maxN = k - c;
 
-        Set<Integer> s_intersect_c = S.intersect(cover);
+        int i = 0;
+        long weight = 0;
+        boolean NPfound = false;
 
-        if(S.size() > k || !isIndependent(s_intersect_c))
-            return new Set<>();
+        for(Integer vertex : V.descendingSet()) {
+            if(i == topN)
+                break;
 
-        long improvement  = getSetWeight(s_intersect_c) - getSetWeight(S.minus(cover));
+            if(independentSetNeighbors[vertex-1] < maxN && cover.contains(vertex) && !F.contains(vertex) && !S.contains(vertex)) {
+                if(i+1==topN && !NPfound && !NP.contains(vertex))
+                    continue;
 
-        if(S.size() == k) {
-            if(improvement > 0)
-                return S;
-            else
-                return new Set<>();
+                if(!NPfound && NP.contains(vertex))
+                    NPfound = true;
+
+                weight += weights.get(vertex);
+                i++;
+            }
+
         }
 
-        if(improvement < 0 && improvement+getTopNCandidates(V, F, cover, S,k-S.size()) < 0) {
-            //System.out.println("Pruned swap " + S.hashCode());
-            enumPruningCount++;
-            return new Set<>();
-        }
+        // no pivot neighbor can extend swap
+        if(!NPfound)
+            return 0;
 
-        Set<Integer> FF = (Set<Integer>) F.clone();
-        for(Integer b : getNeighbors(p).minus(S.union(FF))) {
-            Set<Integer> nb = getNeighbors(b);
-            //if(nb.intersect(F.minus(cover)).size() == 0) {
-            nb = nb.minus(S.union(cover));
-            Stack<Integer> PP = (Stack<Integer>) P.clone();
-            PP.add(p);
-            PP.addAll(nb);
-            Integer pp = PP.pop();
-
-            Set<Integer> SS = S.union(nb);
-            SS.add(b);
-
-            Set<Integer> result = enumerate(k,cover,SS,pp, PP, FF);
-            if(result.size() != 0)
-                return result;
-            //}
-            FF.add(b);
-        }
-
-
-        if(P.isEmpty())
-            return new Set<>();
-        Integer pp = P.pop();
-        return enumerate(k, cover, S, pp, P, FF);
+        return weight;
     }
 
     /**
@@ -782,6 +627,10 @@ public class IntegerGraph {
      */
     public Set<Integer> preprocess() {
         return preprocessRecursive(1,0, new Set<Integer>());
+    }
+
+    private void printStats(long weight, int k, long score) {
+        System.out.println(weight + " " + k + " " + score);
     }
 
     private Set<Integer> preprocessRecursive(int removed, int totalRemoved, Set<Integer> inCover) {
