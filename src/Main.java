@@ -141,13 +141,13 @@ public class Main {
 
         for(IntegerGraph graph : graphs) {
             totalWeight -= graph.getSetWeight(graph.initialSolution);
-            if(algorithm == 0)
+            if(algorithm == 0)          // vanilla algorithm
                 currentSolution = graph.localSearch(graph.initialSolution, k_max, totalWeight);
-            else if (algorithm == 1)
+            else if (algorithm == 1)    // eager swap algorithm
                 currentSolution = graph.localSearch_cycling(graph.initialSolution, k_max, totalWeight);
-            else if (algorithm == 2)
+            else if (algorithm == 2)    // candidate selection algorithm
                 currentSolution = graph.localSearch_pruning(graph.initialSolution, k_max, totalWeight);
-            else if (algorithm == 3)
+            else if (algorithm == 3)    // improvement upper bound algorithm
                 currentSolution = graph.localSearch_imprUpperBound(graph.initialSolution, k_max, totalWeight);
 
 

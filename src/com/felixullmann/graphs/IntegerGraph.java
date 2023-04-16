@@ -629,8 +629,8 @@ public class IntegerGraph {
         return preprocessRecursive(1,0, new Set<Integer>());
     }
 
-    private void printStats(long weight, int k, long score) {
-        System.out.println(weight + " " + k + " " + score);
+    private void printStats(long weight, int k, long time) {
+        System.out.println(weight + " " + k + " " + (float) time/1000);
     }
 
     private Set<Integer> preprocessRecursive(int removed, int totalRemoved, Set<Integer> inCover) {
