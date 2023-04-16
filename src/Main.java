@@ -15,6 +15,7 @@ public class Main {
         // Parse arguments and flags
         String inputFileName = null;
         Integer k_max = null;
+        int time_limit = -1;
 
         boolean greedySolution = false;
         boolean vertexPruning = false;
@@ -63,6 +64,10 @@ public class Main {
                 case "--alg-improvementUpperBound":
                     algorithm = 3;
                     break;
+                case "-T":
+                    time_limit = Integer.parseInt(args[i+1]);
+                    i++;
+                    break;
                 default:
                     if (inputFileName == null) {
                         inputFileName = arg;
@@ -87,8 +92,10 @@ public class Main {
         IntegerGraph myGraph = null;
         Set<Integer> minimumVertexCover = new Set<>();
 
+
         try {
             myGraph = IntegerGraph.fromVehicleRoutingApplication(inputFileName);
+            myGraph.time_limit = time_limit * 1000;
         } catch (IndexOutOfBoundsException e) {
             System.out.println("Error initializing graph.");
             System.exit(1);

@@ -12,18 +12,20 @@ public class IntegerGraph {
     public HashMap<Integer, Integer> weights;
     public HashMap<Integer, Set<Integer>> adjacency;
     public Set<Integer> initialSolution = null;         // may be used to save greedy solutions
+    public int time_limit;
+    private long start;
 
     // comparators for finding greedy solution
     public Comparator<Integer> maxDegreeComparator = (Integer v1, Integer v2) -> Integer.compare(adjacency.get(v2).size(), adjacency.get(v1).size());
     public Comparator<Integer> neighborWeightRatioComparator = (Integer v1, Integer v2) -> Float.compare((float) getSetWeight(getNeighbors(v2))/weights.get(v2), (float) getSetWeight(getNeighbors(v1))/weights.get(v1));
     public Comparator<Integer> neighborWeightDifferenceComparator = (Integer v1, Integer v2) -> Long.compare(getSetWeight(getNeighbors(v2)) - weights.get(v2), getSetWeight(getNeighbors(v1)) - weights.get(v1));
 
-    public IntegerGraph(Set<Integer> vertices, HashMap<Integer, Integer> weights, HashMap<Integer, Set<Integer>> adjacency) {
+    public IntegerGraph(Set<Integer> vertices, HashMap<Integer, Integer> weights, HashMap<Integer, Set<Integer>> adjacency, int time_limit) {
         this.vertices = vertices;
         this.weights = weights;
         this.adjacency = adjacency;
+        this.time_limit = time_limit;
     }
-
 
     /**
      * loads problem for minimum weighted vertex cover from problem sets presented in https://doi.org/10.1007/s43069-021-00084-x
@@ -75,7 +77,7 @@ public class IntegerGraph {
             }
 
 
-            return new IntegerGraph(vertices, weights, adjacency);
+            return new IntegerGraph(vertices, weights, adjacency, -1);
 
         } catch (IOException e) {
             System.out.println("Required files could not be read.");
@@ -199,7 +201,7 @@ public class IntegerGraph {
     public Set<Integer> localSearch(Set<Integer> cover, int kMax, long totalWeight) {
         Set<Integer> S;
 
-        long start = System.currentTimeMillis();
+        start = System.currentTimeMillis();
         long current;
 
         for(int k = 1; k <= kMax; k++) {
@@ -246,7 +248,7 @@ public class IntegerGraph {
 
     // vertex cylcing variant using array and indices
     public Set<Integer> localSearch_cycling(Set<Integer> cover, int kMax, long totalWeight) {
-        long start = System.currentTimeMillis();
+        start = System.currentTimeMillis();
         long current;
 
         int maxCycling = 3;
@@ -332,7 +334,7 @@ public class IntegerGraph {
         Set<Integer> F;
 
 
-        long start = System.currentTimeMillis();
+        start = System.currentTimeMillis();
         long current;
 
 
@@ -387,6 +389,9 @@ public class IntegerGraph {
     }
 
     public Set<Integer> enumerate(int k, Set<Integer> cover, Set<Integer> S, Integer p, Stack<Integer> P, Set<Integer> F) {
+        if(time_limit != -1 && (System.currentTimeMillis()-start) > time_limit)
+            System.exit(0);
+
 
         Set<Integer> s_intersect_c = S.intersect(cover);
 
@@ -454,7 +459,7 @@ public class IntegerGraph {
         Integer p = null;
         Set<Integer> F;
 
-        long start = System.currentTimeMillis();
+        start = System.currentTimeMillis();
         long current;
 
         for(int k = 1; k <= kMax; k++) {
@@ -504,6 +509,8 @@ public class IntegerGraph {
     }
 
     public Set<Integer> enumerate_imprUpperBound(int k, Set<Integer> cover, Set<Integer> S, Integer p, Stack<Integer> P, Set<Integer> F) {
+        if(time_limit != -1 && (System.currentTimeMillis()-start) > time_limit)
+            System.exit(0);
 
         Set<Integer> s_intersect_c = S.intersect(cover);
 
@@ -780,7 +787,7 @@ public class IntegerGraph {
                 currentVertices.addAll(this.adjacency.get(v));
             }
 
-            subgraphs.add(new IntegerGraph(currentVertices, currentWeights, currentAdjacency));
+            subgraphs.add(new IntegerGraph(currentVertices, currentWeights, currentAdjacency, this.time_limit));
             remaining.removeAll(currentVertices);
             //System.out.println("Subset of size " + currentVertices.size() +  " found. " + remaining.size() + " vertices remaining.");
 
