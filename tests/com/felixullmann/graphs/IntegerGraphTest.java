@@ -36,7 +36,7 @@ public class IntegerGraphTest {
         weights.put(5,6);
 
 
-        myGraph = new IntegerGraph(vertices, weights, adjacency);
+        myGraph = new IntegerGraph(vertices, weights, adjacency, 0);
     }
 
     @Test
