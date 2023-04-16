@@ -37,6 +37,8 @@ namespace opt {
 
 		long w_total() const { return w_total_; }
 
+		void reset_w_total() { w_total_ = 0; }
+
 		// return the adjency list of vertex i
 
 	const std::vector<int>& adj_l(const int i) const

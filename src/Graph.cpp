@@ -17,9 +17,10 @@ Graph::Graph(const int n, const int m) :
 	w_total_(0),
 	adj_l_(n, std::vector<int>())
 {
-	// for(int idx = 0; idx < n; idx++) {
-	// 	weights_[idx] = (idx + 1) % 200 + 1;
-	// }
+	for(int idx = 0; idx < n; idx++) {
+		weights_[idx] = (idx + 1) % 200 + 1;
+		w_total_ += weights_[idx];
+	}
 }
 
 void Graph::removeEdge(const int i, const int j)

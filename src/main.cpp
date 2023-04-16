@@ -47,9 +47,16 @@ namespace opt
 		ifstream weights((filename + "node_weights.txt").c_str());
 		Graph *graph = NULL;
 
+	// unweighted file, need to generate weights later
+	if(!weights) {
+		cout << "No weights file found, generating random weights" << endl;
+		input.close();
+		input.open(filename.c_str());
+	}
+
 	if (!input) {
 			throw InitError("error opening the input file: " + filename + "\n");
-		}
+	}
 
 	while (input.getline(buffer, 256)) {
 			linenum++;
@@ -94,30 +101,35 @@ namespace opt
 		input.close();
 
 		// read weights
-		int linenum2 = 0;
-		while (weights.getline(buffer, 256))
-		{
-			linenum2++;
-			int vertex, weight;
-			if (sscanf(buffer, "%d %d", &vertex, &weight) != 2)
+		if(weights) {
+			graph->reset_w_total();
+			int linenum2 = 0;
+			while (weights.getline(buffer, 256))
 			{
-				weights.close();
-				throw InitError("syntax error in line " + std::to_string(linenum2) + "\n");
+				linenum2++;
+				int vertex, weight;
+				if (sscanf(buffer, "%d %d", &vertex, &weight) != 2)
+				{
+					weights.close();
+					throw InitError("syntax error in line " + std::to_string(linenum2) + "\n");
+				}
+				graph->addWeight(vertex-1, weight);
 			}
-			graph->addWeight(vertex-1, weight);
-		}
 
-		weights.close();
+			weights.close();
+
+			if (linenum2 != n)
+				{
+					throw InitError("the number of vertices announced is not equal to the number of weights read.\n");
+				}
+		}
 
 		if (m_count != m)
 		{
 			throw InitError("the number of edges announced is not equal to the number of edges read.\n");
 		}
 
-		if (linenum2 != n)
-		{
-			throw InitError("the number of vertices announced is not equal to the number of weights read.\n");
-		}
+
 
 		// cout << "node weights \n" << endl;
 
