@@ -35,7 +35,7 @@ namespace opt {
 
 		// return to the total weight of the graph
 
-		int w_total() const { return w_total_; }
+		long w_total() const { return w_total_; }
 
 		// return the adjency list of vertex i
 
