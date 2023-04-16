@@ -3,6 +3,7 @@
 #include <list>
 #include <assert.h>
 #include <algorithm>
+// #include <iostream>
 
 using namespace std;
 
@@ -13,6 +14,7 @@ Graph::Graph(const int n, const int m) :
 	weights_(n, 0),
 	n_(n),
 	m_(m),
+	w_total_(0),
 	adj_l_(n, std::vector<int>())
 {
 	// for(int idx = 0; idx < n; idx++) {
@@ -39,6 +41,7 @@ void Graph::addEdge(const int i, const int j)
 void Graph::addWeight(const int vertex, const int weight)
 {
 	weights_[vertex] = weight;
+	w_total_ += weight;
 }
 
 void Graph::sort()

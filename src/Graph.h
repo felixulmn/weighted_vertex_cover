@@ -33,6 +33,10 @@ namespace opt {
 
 		int weight(const int v) const { return weights_[v]; }
 
+		// return to the total weight of the graph
+
+		int w_total() const { return w_total_; }
+
 		// return the adjency list of vertex i
 
 	const std::vector<int>& adj_l(const int i) const
@@ -61,6 +65,8 @@ namespace opt {
 		int n_; // number of vertices
 
 		int m_; // number of edges
+
+		long w_total_; // total weight of the graph
 
 	std::vector< std::vector<int> > adj_l_; // adjaceny list
 

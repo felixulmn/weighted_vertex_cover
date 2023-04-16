@@ -36,6 +36,8 @@ public:
 
 	double p[4]; // intensification/exploration parameters
 
+	long time_limit; // time limit in seconds
+
 	//------------
 	// singleton functions
 	//------------

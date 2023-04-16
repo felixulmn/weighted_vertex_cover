@@ -137,6 +137,9 @@ namespace opt
 		// 	cout << i << " " << edgeStr << endl;
 		// }
 
+		// cout << graph->w_total() << endl;
+		// exit(0);
+
 		return graph;
 	} // Graph *readInstance (const string &filename)
 
@@ -190,7 +193,8 @@ int main(int argc, char *argv[])
 
 		Solution best_s(s);
 		if (ArgPack::ap().verbose)
-			cout << "best weight: " << best_s.weight() << "\n";
+			cout << graph_instance->w_total() - best_s.weight() << " 0 0 \n";
+			//cout << "best weight: " << best_s.weight() << "\n";
 
 		// run ILS iterations
 
@@ -233,8 +237,11 @@ int main(int argc, char *argv[])
 						goto exit;
 					}
 
-					if (ArgPack::ap().verbose)
-						cout << "new best weight: " << best_s.weight() << " / iteration: "<<  iter <<" / time (s): " << proc_timer.getTime() << "\n";
+					if (ArgPack::ap().verbose) {
+						// cout << "new best weight: " << best_s.weight() << " / iteration: "<<  iter <<" / time (s): " << proc_timer.getTime() << "\n";
+						cout << graph_instance->w_total() - best_s.weight() << " " << iter << " " << proc_timer.getTime() << "\n";
+
+					}
 				}
 			} else if (k <= s.size() / ArgPack::ap().p[1]) {
 				k++;
@@ -243,27 +250,30 @@ int main(int argc, char *argv[])
 				s.force(ArgPack::ap().p[3]);
 				k = 1;
 			}
+
+			if(ArgPack::ap().time_limit != -1 && proc_timer.getTime() > ArgPack::ap().time_limit)
+				goto exit;
 		}
 
 	exit:
 		proc_timer.pause();
 		assert(best_s.integrityCheck());
 
-		if (ArgPack::ap().verbose) {
-			cout << "\n\n- best weight: " << best_s.weight() << "\n";
-			cout << "- size: " << best_s.size() << "\n";
-			cout << "- solution: ";
-			for(int v : best_s.i_set()) {
-				cout << (v+1) << " ";
-			}
-			cout << "\n- input time: " << input_timer.getTime() << "\n";
-			cout << "- iterations to find the best: " << target_iterations << "\n";
-			cout << "- time to find the best (s): " << target_time << "\n";
-			cout << "- total iterations: " << iter << "\n";
-			cout << "- total processing time (s): " << proc_timer.getTime() << "\n";
-		} else {
-			cout << best_s.weight() << " " << target_time << " " << proc_timer.getTime() << "\n";
-		}
+		// if (ArgPack::ap().verbose) {
+		// 	cout << "\n\n- best weight: " << (graph_instance->w_total() -  best_s.weight()) << "\n";
+		// 	cout << "- size: " << best_s.size() << "\n";
+		// 	cout << "- solution: ";
+		// 	for(int v : best_s.i_set()) {
+		// 		cout << (v+1) << " ";
+		// 	}
+		// 	cout << "\n- input time: " << input_timer.getTime() << "\n";
+		// 	cout << "- iterations to find the best: " << target_iterations << "\n";
+		// 	cout << "- time to find the best (s): " << target_time << "\n";
+		// 	cout << "- total iterations: " << iter << "\n";
+		// 	cout << "- total processing time (s): " << proc_timer.getTime() << "\n";
+		// } else {
+		// 	cout << best_s.weight() << " " << target_time << " " << proc_timer.getTime() << "\n";
+		// }
 
 		delete(graph_instance);
 

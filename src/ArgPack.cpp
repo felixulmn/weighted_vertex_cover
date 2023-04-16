@@ -28,7 +28,8 @@ ArgPack::ArgPack(int argc, char * const argv []) :
 	target(0),
 	complement(0),
 	iterations(2000000),
-	p{2,4,4,1}
+	p{2,4,4,1},
+	time_limit(0)
 {
 
 	assert(!def_ap_);
@@ -39,6 +40,7 @@ ArgPack::ArgPack(int argc, char * const argv []) :
 	               "Compile time: " + __DATE__ + " " + __TIME__ + "\n" +
 	               "	-h			: show this help\n" +
 	               "	-i			: maximum number of iterations [default: " + to_string(iterations) +  "] \n" +
+	               "	-T<time limit>		: time limit in seconds\n" +
 	               "	-s<random seed>		: random seed [default: " + to_string(rand_seed) + "]\n" +
 	               "	-v			: disable verbose mode \n" +
 //	               "	-o<output>      : output solution file [default: " + output_name + "]\n" +
@@ -49,7 +51,7 @@ ArgPack::ArgPack(int argc, char * const argv []) :
 							to_string(p[2]) + " p4=" + to_string(p[3]) + "]\n";
 	string help = "Use -h for more information\n";
 
-	const char *opt_str = "hs:vt:Wp:i:";
+	const char *opt_str = "hs:vt:Wp:iT:";
 
 	long ch;
 
@@ -67,6 +69,9 @@ ArgPack::ArgPack(int argc, char * const argv []) :
 			break;
 		case 'i':
 			iterations = strtoul(optarg, NULL, 10);
+			break;
+		case 'T':
+			time_limit = strtoul(optarg, NULL, 10);
 			break;
 		case 's':
 			rand_seed = strtoul(optarg, NULL, 10);
