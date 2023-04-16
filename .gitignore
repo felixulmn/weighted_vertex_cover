@@ -2,3 +2,7 @@ out/
 .idea/
 weighted_vertex_cover.iml
 datasets/
+# no files from ilsvnd
+.vscode/
+obj/
+ilsvnd
