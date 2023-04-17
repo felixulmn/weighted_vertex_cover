@@ -60,19 +60,24 @@ namespace opt
 	while (input.getline(buffer, 256)) {
 		linenum++;
 
-		if(linenum == 1)
+		if(linenum == 1 && !weights)
 			continue;
 
-		int v1, v2, v3;
+		int v1, v2, v3 = -1;
 
 
-		if (linenum == 2) { // read the number of vertices and edges
+		if (linenum == 2 && !weights || linenum == 1) { // read the number of vertices and edges
 
-			if (sscanf(buffer, "%d %d %d", &v1, &v2, &v3) != 3) {
+			if(linenum == 1 && sscanf(buffer, "%d %d", &v1, &v2) != 2) {
 				input.close();
-				throw InitError("syntax error in line " + std::to_string(linenum) + "\n");
+				throw InitError("1syntax error in line " + std::to_string(linenum) + "\n");
+			} else if(linenum == 2 && sscanf(buffer, "%d %d %d", &v1, &v2, &v3) != 3) {
+				input.close();
+				throw InitError("2syntax error in line " + std::to_string(linenum) + "\n");
 			}
 
+			if(v3 != -1)
+				v2 = v3;
 
 			if (v1 < 0 || v2 < 0) {
 					input.close();
@@ -80,7 +85,7 @@ namespace opt
 													". The number of edges and vertices must not be negative.\n");
 				}
 				n = v1;
-				m = v3;
+				m = v2;
 				graph = new Graph(v1, v2);
 			if (complement) {
 				for (int idx1 = 0; idx1 < v1; idx1++) {
