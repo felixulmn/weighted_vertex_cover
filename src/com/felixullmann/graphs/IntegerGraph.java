@@ -31,60 +31,94 @@ public class IntegerGraph {
      * loads problem for minimum weighted vertex cover from problem sets presented in https://doi.org/10.1007/s43069-021-00084-x
      * @return returns new IntegerGraph instance based on the given problem
      */
-    public static IntegerGraph fromVehicleRoutingApplication(String path) {
-        try {
-            Set<Integer> vertices;
-            HashMap<Integer, Set<Integer>> adjacency;
-            HashMap<Integer, Integer> weights;
+    public static IntegerGraph fromVehicleRoutingApplication(String path) throws IOException {
+        Set<Integer> vertices;
+        HashMap<Integer, Set<Integer>> adjacency;
+        HashMap<Integer, Integer> weights;
 
-            String str;
+        String str;
 
-            File edgeFile = new File(path+"/conflict_graph.txt");
-            final LineNumberReader reader = new LineNumberReader(new FileReader(edgeFile));
+        File edgeFile = new File(path+"/conflict_graph.txt");
+        final LineNumberReader reader = new LineNumberReader(new FileReader(edgeFile));
 
-            // prepare vertex set and adjacency map
-            StringTokenizer tokens = new StringTokenizer(reader.readLine());
-            Integer vertexCount = Integer.parseInt(tokens.nextToken());
-            Integer edgeCount = Integer.parseInt(tokens.nextToken());
-            vertices = new Set<>(vertexCount*2);
-            weights = new HashMap<>(vertexCount*2);
-            adjacency = new HashMap<>(edgeCount*2);
+        // prepare vertex set and adjacency map
+        StringTokenizer tokens = new StringTokenizer(reader.readLine());
+        Integer vertexCount = Integer.parseInt(tokens.nextToken());
+        Integer edgeCount = Integer.parseInt(tokens.nextToken());
+        vertices = new Set<>(vertexCount*2);
+        weights = new HashMap<>(vertexCount*2);
+        adjacency = new HashMap<>(edgeCount*2);
 
-            // add weights and vertices
-            File vertexFile = new File(path+"/node_weights.txt");
-            final LineNumberReader vertexReader = new LineNumberReader(new FileReader(vertexFile));
-            Integer vertex, weight;
-            StringTokenizer vertexTokens;
-            while ((str = vertexReader.readLine()) != null) {
-                vertexTokens = new StringTokenizer(str);
-                vertex = Integer.parseInt(vertexTokens.nextToken());
-                weight = Integer.parseInt(vertexTokens.nextToken());
+        // add weights and vertices
+        File vertexFile = new File(path+"/node_weights.txt");
+        final LineNumberReader vertexReader = new LineNumberReader(new FileReader(vertexFile));
+        Integer vertex, weight;
+        StringTokenizer vertexTokens;
+        while ((str = vertexReader.readLine()) != null) {
+            vertexTokens = new StringTokenizer(str);
+            vertex = Integer.parseInt(vertexTokens.nextToken());
+            weight = Integer.parseInt(vertexTokens.nextToken());
 
-                vertices.add(vertex);
-                adjacency.put(vertex, new Set<>());
-                weights.put(vertex,weight);
-            }
-
-            // populate graph with edges
-            Integer a,b;
-            while ((str = reader.readLine()) != null) {
-                tokens = new StringTokenizer(str);
-                a = Integer.parseInt(tokens.nextToken());
-                b = Integer.parseInt(tokens.nextToken());
-
-                adjacency.get(a).add(b);
-                adjacency.get(b).add(a);
-            }
-
-
-            return new IntegerGraph(vertices, weights, adjacency, -1);
-
-        } catch (IOException e) {
-            System.out.println("Required files could not be read.");
-            System.exit(0);
+            vertices.add(vertex);
+            adjacency.put(vertex, new Set<>());
+            weights.put(vertex,weight);
         }
 
-        return null;
+        // populate graph with edges
+        Integer a,b;
+        while ((str = reader.readLine()) != null) {
+            tokens = new StringTokenizer(str);
+            a = Integer.parseInt(tokens.nextToken());
+            b = Integer.parseInt(tokens.nextToken());
+
+            adjacency.get(a).add(b);
+            adjacency.get(b).add(a);
+        }
+
+
+        return new IntegerGraph(vertices, weights, adjacency, -1);
+
+    }
+
+    public static IntegerGraph fromUnweightedGraph(String inputFileName) throws IOException {
+        Set<Integer> vertices;
+        HashMap<Integer, Set<Integer>> adjacency;
+        HashMap<Integer, Integer> weights;
+
+        String str;
+
+        File edgeFile = new File(inputFileName);
+        final LineNumberReader reader = new LineNumberReader(new FileReader(edgeFile));
+
+        reader.readLine(); // skip first line of dimacs file
+
+        // prepare vertex set and adjacency map
+        StringTokenizer tokens = new StringTokenizer(reader.readLine());
+        Integer vertexCount = Integer.parseInt(tokens.nextToken());
+        Integer edgeCount = Integer.parseInt(tokens.nextToken());
+        vertices = new Set<>(vertexCount*2);
+        weights = new HashMap<>(vertexCount*2);
+        adjacency = new HashMap<>(edgeCount*2);
+
+
+        for(int i = 1; i<=vertexCount; i++) {
+            vertices.add(i);
+            adjacency.put(i, new Set<>());
+            weights.put(i, i%200 + 1);
+        }
+
+        int v1, v2;
+        while((str = reader.readLine()) != null) {
+            tokens = new StringTokenizer(str);
+            v1 = Integer.parseInt(tokens.nextToken());
+            v2 = Integer.parseInt(tokens.nextToken());
+
+            adjacency.get(v1).add(v2);
+            adjacency.get(v2).add(v1);
+
+        }
+
+        return new IntegerGraph(vertices, weights, adjacency, -1);
     }
 
     /**

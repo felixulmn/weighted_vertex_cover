@@ -1,6 +1,7 @@
 import com.felixullmann.graphs.IntegerGraph;
 import com.felixullmann.graphs.Set;
 
+import java.io.IOException;
 import java.util.Comparator;
 import java.util.TreeSet;
 
@@ -95,11 +96,18 @@ public class Main {
 
         try {
             myGraph = IntegerGraph.fromVehicleRoutingApplication(inputFileName);
-            myGraph.time_limit = time_limit * 1000;
-        } catch (IndexOutOfBoundsException e) {
-            System.out.println("Error initializing graph.");
-            System.exit(1);
+
+        } catch (Exception e) {
+            try {
+                myGraph = IntegerGraph.fromUnweightedGraph(inputFileName);
+            } catch (IOException ex) {
+                System.out.println("Error initializing graph.");
+                System.exit(1);
+            }
         }
+
+        if(time_limit != -1)
+            myGraph.time_limit = time_limit*1000;
 
         int edgecount = 0;
         for(Set<Integer> neighbors : myGraph.adjacency.values()) {
