@@ -1,8 +1,13 @@
+# java files
 out/
 .idea/
 weighted_vertex_cover.iml
 datasets/
+# ilsvnd files
 obj/
 .vscode/
 ilsvnd
+run-benchmarks-java.py
+testfile-java
+
 
