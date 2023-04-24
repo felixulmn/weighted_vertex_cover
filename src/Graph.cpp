@@ -18,7 +18,7 @@ Graph::Graph(const int n, const int m) :
 	adj_l_(n, std::vector<int>())
 {
 	for(int idx = 0; idx < n; idx++) {
-		weights_[idx] = (idx + 1) % 200 + 1;
+		weights_[idx] = (idx + 1) % 30 + 1;
 		w_total_ += weights_[idx];
 	}
 }
